@@ -112,7 +112,12 @@ def sanitize_selected_rule_ids(selected_rule_ids: List[str]) -> List[str]:
     valid = set(RULE_HANDLERS.keys())
     return [rule_id for rule_id in selected_rule_ids if rule_id in valid]
 
-def run_checks(file_bytes: bytes, filename: str, selected_rule_ids: List[str] | None = None) -> List[Issue]:
+def run_checks(
+    file_bytes: bytes,
+    filename: str,
+    selected_rule_ids: List[str] | None = None,
+    ebom_bytes: bytes | None = None,
+) -> List[Issue]:
     if not selected_rule_ids:
         selected_rule_ids = get_default_enabled_rule_ids()
 
