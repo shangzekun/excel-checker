@@ -69,8 +69,16 @@ async def check_excel(
     selected_rules: str = Form(default="")
 ):
     started = time.perf_counter()
-    content = await file.read()
-    _validate_upload(file, content)
+    main_content = await file.read()
+    ebom_content = await ebom_file.read() if ebom_file else None
+    
+    # 校验主文件
+    _validate_upload(file, main_content)
+    
+    # 如果上传了 EBOM，则校验它
+    if ebom_content:
+        _validate_upload(ebom_file, ebom_content)
+
     selected_rule_ids = _parse_selected_rules(selected_rules)
     logger.info("check start filename=%s size=%s rules=%s", file.filename, len(content), ",".join(selected_rule_ids))
     try:
@@ -103,8 +111,15 @@ async def export_report(
     selected_rules: str = Form(default="")
 ):
     started = time.perf_counter()
-    content = await file.read()
-    _validate_upload(file, content)
+    main_content = await file.read()
+    ebom_content = await ebom_file.read() if ebom_file else None
+    
+    # 校验主文件
+    _validate_upload(file, main_content)
+    
+    # 如果上传了 EBOM，则校验它
+    if ebom_content:
+        _validate_upload(ebom_file, ebom_content)
     selected_rule_ids = _parse_selected_rules(selected_rules)
     logger.info("report start filename=%s size=%s rules=%s", file.filename, len(content), ",".join(selected_rule_ids))
     try:
