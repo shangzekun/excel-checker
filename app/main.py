@@ -60,8 +60,14 @@ def health():
 def rules():
     return {"rules": get_rules()}
 
+from fastapi import UploadFile, File, Form
+
 @app.post("/api/check", response_model=CheckResult)
-async def check_excel(file: UploadFile = File(...), selected_rules: str = Form(default="")):
+async def check_excel(
+    file: UploadFile = File(...),
+    ebom_file: UploadFile | None = File(default=None),
+    selected_rules: str = Form(default="")
+):
     started = time.perf_counter()
     content = await file.read()
     _validate_upload(file, content)
@@ -91,7 +97,11 @@ async def check_excel(file: UploadFile = File(...), selected_rules: str = Form(d
     return CheckResult(ok=ok, summary=summary, issues=issues)
 
 @app.post("/api/report")
-async def export_report(file: UploadFile = File(...), selected_rules: str = Form(default="")):
+async def export_report(
+    file: UploadFile = File(...),
+    ebom_file: UploadFile | None = File(default=None),
+    selected_rules: str = Form(default="")
+):
     started = time.perf_counter()
     content = await file.read()
     _validate_upload(file, content)
