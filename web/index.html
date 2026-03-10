@@ -25,12 +25,14 @@
     .hero{ margin-bottom:18px; }
     .hero h1{ margin:0; font-size:34px; line-height:1.15; font-weight:900; letter-spacing:.2px; }
     .hero p{ margin:10px 0 0; color:var(--muted); font-size:14px; line-height:1.85; }
+
     .top-grid{
       display:grid;
       grid-template-columns: minmax(0, 1.25fr) minmax(340px, .75fr);
       gap:16px;
       align-items:start;
     }
+
     .card{
       border:1px solid var(--line);
       background:linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.03));
@@ -46,9 +48,11 @@
       align-items:center;
       gap:14px;
       border-bottom:1px solid var(--line2);
+      flex-wrap:wrap;
     }
     .card-title{ margin:0; font-size:15px; font-weight:900; letter-spacing:.2px; }
     .card-bd{ padding:18px 20px 20px; }
+
     .upload-drop{
       border:1px dashed rgba(255,255,255,.18);
       background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.025));
@@ -88,6 +92,7 @@
       border-color:rgba(34,197,94,.28);
       color:#fff;
     }
+
     .drop-file-info{
       margin-top:14px; border:1px solid var(--line); border-radius:16px;
       background:rgba(255,255,255,.035);
@@ -249,11 +254,56 @@
     .num.error{ color:#ff8b8b; } .num.warning{ color:#ffca3a; } .num.info{ color:#47c7ff; }
 
     .table-card{ margin-top:14px; }
-    .table-head{ padding:16px 18px 8px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+    .table-head{
+      padding:16px 18px 8px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
     .table-title{ margin:0; font-size:14px; font-weight:800; }
-    .level-filter{ display:flex; gap:14px; align-items:center; flex-wrap:wrap; color:rgba(255,255,255,.88); font-size:13px; }
+
+    .head-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .level-filter{
+      display:flex;
+      gap:14px;
+      align-items:center;
+      flex-wrap:wrap;
+      color:rgba(255,255,255,.88);
+      font-size:13px;
+    }
     .radio{ display:inline-flex; gap:6px; align-items:center; cursor:pointer; user-select:none; }
     .radio input{ accent-color:#60a5fa; }
+
+    .view-toggle{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .view-btn{
+      appearance:none;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      border-radius:12px;
+      padding:8px 12px;
+      font-size:12px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .view-btn.active{
+      background:rgba(59,130,246,.16);
+      border-color:rgba(96,165,250,.28);
+      color:#d7ebff;
+    }
+
     .table-tools{ padding:0 18px 12px; }
     .search{
       width:100%; border:1px solid var(--line);
@@ -261,13 +311,14 @@
       border-radius:14px; padding:11px 13px; outline:none;
     }
     .search::placeholder{ color:rgba(255,255,255,.38); }
-    .table-wrap{ padding:0 18px 14px; }
+
+    .results-wrap{ padding:0 18px 14px; }
     .table-box{
       border:1px solid var(--line);
       border-radius:18px; overflow:auto;
       background:rgba(255,255,255,.03);
     }
-    table{ width:100%; border-collapse:collapse; min-width:840px; }
+    table{ width:100%; border-collapse:collapse; min-width:860px; }
     thead th{
       text-align:left; padding:14px 14px; font-size:12px; color:#dbeafe; font-weight:900;
       border-bottom:1px solid var(--line);
@@ -281,6 +332,77 @@
     }
     tbody tr:hover{ background:rgba(255,255,255,.03); }
     .footer-tip{ padding:0 18px 16px; color:var(--muted); font-size:12px; line-height:1.8; }
+
+    .empty{
+      border:1px dashed var(--line);
+      border-radius:18px;
+      padding:28px 20px;
+      text-align:center;
+      color:var(--muted);
+      background:rgba(255,255,255,.02);
+    }
+
+    .agg-btn{
+      appearance:none;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      color:var(--text);
+      border-radius:10px;
+      padding:6px 10px;
+      font-size:12px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .agg-subrow td{
+      background:rgba(255,255,255,.02);
+      padding:0;
+    }
+    .agg-details{
+      padding:14px;
+    }
+    .agg-details-note{
+      margin:0 0 12px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .mini-table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:680px;
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:12px;
+      overflow:hidden;
+    }
+    .mini-table th, .mini-table td{
+      padding:10px 12px;
+      font-size:12px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      vertical-align:top;
+    }
+    .mini-table th{
+      color:#dbeafe;
+      background:rgba(255,255,255,.03);
+      font-weight:800;
+    }
+    .mini-table td{ color:rgba(255,255,255,.86); }
+    .detail-pairs{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    .pair-chip{
+      display:inline-flex;
+      gap:6px;
+      align-items:center;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.04);
+      border-radius:999px;
+      padding:4px 8px;
+      font-size:11px;
+      color:#dbeafe;
+    }
+    .pair-chip .k{ color:var(--muted); }
 
     .toast{
       margin-top:12px; padding:10px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.12);
@@ -306,6 +428,7 @@
       border-radius:50%; animation:spin .8s linear infinite;
     }
     @keyframes spin{ to{ transform:rotate(360deg); } }
+
     .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
 
     @media (max-width: 1100px){
@@ -322,7 +445,7 @@
   <div class="page">
     <section class="hero">
       <h1>Excel-checker 数据检查平台</h1>
-      <p>上传产品数据 Excel 文件，按规则执行检查，查看结果并导出报告。</p>
+      <p>上传产品数据 Excel 文件，按规则执行检查，查看结果并导出报告。详细结果默认按问题聚合展示，可展开查看原始明细。</p>
     </section>
 
     <section class="top-grid">
@@ -422,38 +545,32 @@
     <section class="card table-card">
       <div class="table-head">
         <h2 class="table-title">详细结果表格（Results Table）</h2>
-        <div class="level-filter">
-          <label class="radio"><input type="radio" name="level" value="all" checked> 全部</label>
-          <label class="radio"><input type="radio" name="level" value="error"> Error</label>
-          <label class="radio"><input type="radio" name="level" value="warning"> Warning</label>
-          <label class="radio"><input type="radio" name="level" value="info"> Info</label>
+
+        <div class="head-actions">
+          <div class="view-toggle">
+            <button class="view-btn active" data-view="aggregate">聚合视图</button>
+            <button class="view-btn" data-view="detail">原始明细</button>
+          </div>
+
+          <div class="level-filter">
+            <label class="radio"><input type="radio" name="level" value="all" checked> 全部</label>
+            <label class="radio"><input type="radio" name="level" value="error"> Error</label>
+            <label class="radio"><input type="radio" name="level" value="warning"> Warning</label>
+            <label class="radio"><input type="radio" name="level" value="info"> Info</label>
+          </div>
         </div>
       </div>
 
       <div class="table-tools">
-        <input class="search" id="q" placeholder="搜索：规则 / 级别 / Sheet / 行号 / 列名 / 问题描述" />
+        <input class="search" id="q" placeholder="搜索：规则 / 标题 / Connect ID / 零件号 / 材料 / 版本 / 厚度 / Sheet / 行号 / 问题描述" />
       </div>
 
-      <div class="table-wrap">
-        <div class="table-box">
-          <table>
-            <thead>
-              <tr>
-                <th style="width:150px;">规则</th>
-                <th style="width:120px;">级别</th>
-                <th style="width:180px;">Sheet</th>
-                <th style="width:100px;">行号</th>
-                <th style="width:100px;">列名</th>
-                <th>问题描述</th>
-              </tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-          </table>
-        </div>
+      <div class="results-wrap" id="resultsWrap">
+        <div class="empty">当前暂无检查结果</div>
       </div>
 
       <div class="footer-tip">
-        当前已支持“多规则勾选执行”。后续只需要在 <span class="mono">app/checks.py</span> 中替换 demo 规则函数，即可接入真实检查逻辑。
+        结果默认按问题分组聚合，适合先看全貌；切换到“原始明细”可查看逐行结果。对版本 / 材料 / 厚度不一致类问题，展开后可看到点表值与 BOM 值的具体差异。
       </div>
     </section>
   </div>
@@ -485,7 +602,6 @@ const sTotal = $("s_total");
 const sErr = $("s_err");
 const sWarn = $("s_warn");
 const sInfo = $("s_info");
-const tbody = $("tbody");
 const searchInput = $("q");
 const ruleSelector = $("ruleSelector");
 const toggleRules = $("toggleRules");
@@ -496,12 +612,15 @@ const dropFileInfo = $("dropFileInfo");
 const dropFname = $("dropFname");
 const dropFmeta = $("dropFmeta");
 const dropFstatus = $("dropFstatus");
+const resultsWrap = $("resultsWrap");
 
 let tmpFile = null;
 let tmpEbomFile = null;
 let lastData = null;
 let currentFilter = "all";
 let currentRuleTabId = "";
+let currentView = "aggregate";
+const expandedGroups = new Set();
 
 function humanSize(bytes){
   if(bytes == null || Number.isNaN(Number(bytes))) return "-";
@@ -605,6 +724,8 @@ function clearAll(){
   tmpEbomFile = null;
   lastData = null;
   currentFilter = "all";
+  currentView = "aggregate";
+  expandedGroups.clear();
 
   fileInput.value = "";
   ebomFileInput.value = "";
@@ -621,7 +742,6 @@ function clearAll(){
   ebomFmeta.textContent = "";
   ebomFstatus.textContent = "EBOM 已就绪";
 
-  tbody.innerHTML = "";
   hideToast();
   resetSummary();
   setStatusText("等待上传");
@@ -634,42 +754,38 @@ function clearAll(){
     r.checked = r.value === "all";
   });
   searchInput.value = "";
-}
 
-function matchQuery(item, query){
-  if(!query) return true;
-  const text = [item.rule, item.level, item.sheet, item.row, item.column, item.message]
-    .map(v => (v ?? "").toString().toLowerCase()).join(" | ");
-  return text.includes(query.toLowerCase());
-}
+  document.querySelectorAll(".view-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.view === "aggregate");
+  });
 
-function passFilter(item){
-  return currentFilter === "all" || item.level === currentFilter;
-}
-
-function renderTable(){
-  tbody.innerHTML = "";
-  if(!lastData || !Array.isArray(lastData.issues)) return;
-
-  const query = searchInput.value.trim();
-  const rows = lastData.issues.filter(passFilter).filter(it => matchQuery(it, query));
-
-  for(const it of rows){
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${escapeHtml(it.rule ?? "")}</td>
-      <td>${levelTag(it.level)}</td>
-      <td>${escapeHtml(it.sheet ?? "")}</td>
-      <td>${escapeHtml(it.row ?? "")}</td>
-      <td>${escapeHtml(it.column ?? "")}</td>
-      <td>${escapeHtml(it.message ?? "")}</td>
-    `;
-    tbody.appendChild(tr);
-  }
+  resultsWrap.innerHTML = '<div class="empty">当前暂无检查结果</div>';
 }
 
 function getSelectedRuleIds(){
   return Array.from(document.querySelectorAll('.rule-input:checked')).map(el => el.value);
+}
+
+function buildRuleDetails(rule){
+  const details = rule.details && rule.details.length ? rule.details : ["暂无详细说明。"];
+  return `
+    <div class="rules-panel-head">
+      <div>
+        <h3>${escapeHtml(rule.name || rule.id)}</h3>
+        <p>${escapeHtml(rule.description || "")}</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+        <span class="tag ${escapeHtml(rule.level || "info")}">${escapeHtml(rule.level || "info")}</span>
+        <span class="tag ${rule.enabled ? "on" : "off"}">${rule.enabled ? "默认启用" : "默认关闭"}</span>
+      </div>
+    </div>
+    ${details.map((d, idx) => `
+      <div class="rule-item">
+        <p class="rule-name">规则说明 ${idx + 1}</p>
+        <p class="rule-desc">${escapeHtml(d)}</p>
+      </div>
+    `).join("")}
+  `;
 }
 
 function renderRuleSelector(rules){
@@ -693,28 +809,6 @@ function renderRuleSelector(rules){
   });
 
   updateEbomVisibility();
-}
-
-function buildRuleDetails(rule){
-  const details = rule.details && rule.details.length ? rule.details : ["暂无详细说明。"];
-  return `
-    <div class="rules-panel-head">
-      <div>
-        <h3>${escapeHtml(rule.name || rule.id)}</h3>
-        <p>${escapeHtml(rule.description || "")}</p>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-        <span class="tag ${escapeHtml(rule.level || "info")}">${escapeHtml(rule.level || "info")}</span>
-        <span class="tag ${rule.enabled ? "on" : "off"}">${rule.enabled ? "默认启用" : "默认关闭"}</span>
-      </div>
-    </div>
-    ${details.map((d, idx) => `
-      <div class="rule-item">
-        <p class="rule-name">规则说明 ${idx + 1}</p>
-        <p class="rule-desc">${escapeHtml(d)}</p>
-      </div>
-    `).join("")}
-  `;
 }
 
 function renderRuleTabs(rules){
@@ -791,10 +885,21 @@ clearBtn.onclick = clearAll;
 document.querySelectorAll('input[name="level"]').forEach(r => {
   r.addEventListener("change", () => {
     currentFilter = document.querySelector('input[name="level"]:checked').value;
-    renderTable();
+    renderResults();
   });
 });
-searchInput.addEventListener("input", renderTable);
+
+searchInput.addEventListener("input", renderResults);
+
+document.querySelectorAll(".view-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    currentView = btn.dataset.view;
+    document.querySelectorAll(".view-btn").forEach(x => {
+      x.classList.toggle("active", x.dataset.view === currentView);
+    });
+    renderResults();
+  });
+});
 
 function buildFormData(mainFile, ebomFile, selectedRules){
   const fd = new FormData();
@@ -804,6 +909,352 @@ function buildFormData(mainFile, ebomFile, selectedRules){
     fd.append("ebom_file", ebomFile);
   }
   return fd;
+}
+
+function normalizeRowValue(row){
+  if(row == null || row === "") return null;
+  const num = Number(row);
+  return Number.isFinite(num) ? num : row;
+}
+
+function formatRowRanges(rows){
+  const nums = rows
+    .map(normalizeRowValue)
+    .filter(v => typeof v === "number")
+    .sort((a,b) => a - b);
+
+  const others = rows
+    .map(v => (v == null ? "" : String(v)))
+    .filter(v => v && !/^\d+$/.test(v));
+
+  if(!nums.length && !others.length) return "-";
+
+  const ranges = [];
+  let start = null;
+  let prev = null;
+
+  for(const n of nums){
+    if(start == null){
+      start = n;
+      prev = n;
+      continue;
+    }
+    if(n === prev + 1){
+      prev = n;
+      continue;
+    }
+    ranges.push(start === prev ? `${start}` : `${start}-${prev}`);
+    start = n;
+    prev = n;
+  }
+  if(start != null){
+    ranges.push(start === prev ? `${start}` : `${start}-${prev}`);
+  }
+
+  return [...ranges, ...others].join(", ");
+}
+
+function uniqueSorted(values){
+  return Array.from(new Set(values.filter(Boolean))).sort();
+}
+
+function getSeverityRank(level){
+  if(level === "error") return 3;
+  if(level === "warning") return 2;
+  if(level === "info") return 1;
+  return 0;
+}
+
+function aggregateIssues(issues){
+  const map = new Map();
+
+  for(const item of issues){
+    const key = item.group_key || `${item.rule || "-"}:${item.message || "-"}:${item.sheet || "-"}:${item.row || "-"}`;
+    if(!map.has(key)){
+      map.set(key, {
+        key,
+        title: item.group_title || item.message || "(无标题)",
+        rule: item.rule || "-",
+        level: item.level || "info",
+        entityType: item.entity_type || "",
+        entityValue: item.entity_value || "",
+        count: 0,
+        sheets: new Set(),
+        rows: [],
+        columns: new Set(),
+        items: [],
+      });
+    }
+
+    const group = map.get(key);
+    group.count += 1;
+    if(item.sheet) group.sheets.add(item.sheet);
+    if(item.column) group.columns.add(item.column);
+    if(item.row != null && item.row !== "") group.rows.push(item.row);
+    group.items.push(item);
+
+    if(getSeverityRank(item.level) > getSeverityRank(group.level)){
+      group.level = item.level;
+    }
+  }
+
+  return Array.from(map.values())
+    .map(g => ({
+      ...g,
+      sheets: Array.from(g.sheets).sort(),
+      columns: Array.from(g.columns).sort(),
+    }))
+    .sort((a, b) => {
+      const lv = getSeverityRank(b.level) - getSeverityRank(a.level);
+      if(lv !== 0) return lv;
+      const rc = a.rule.localeCompare(b.rule, "zh-CN");
+      if(rc !== 0) return rc;
+      return b.count - a.count || a.title.localeCompare(b.title, "zh-CN");
+    });
+}
+
+function stringifyDetailValue(value){
+  if(Array.isArray(value)) return value.join(" / ");
+  if(value == null || value === "") return "-";
+  return String(value);
+}
+
+function detailKeyLabel(key){
+  const labels = {
+    versions: "版本列表",
+    materials: "材料列表",
+    gauges: "厚度列表",
+    point_version: "点表版本",
+    bom_version: "BOM版本",
+    point_material: "点表材料",
+    bom_material: "BOM材料",
+    point_gauge: "点表厚度",
+    bom_gauge: "BOM厚度",
+    bom_gauge_options: "BOM厚度候选",
+    connect_id: "Connect ID",
+    fixing_part_id: "Fixing Part",
+    fixing_part_id_3_8: "Fixing 3-8位",
+    connect_id_4_9: "Connect 4-9位",
+    connect_id_a: "点A",
+    connect_id_b: "点B",
+    distance: "空间距离",
+    manhattan: "曼哈顿距离",
+    slot: "槽位",
+    part_no: "零件号",
+    gauge: "厚度值",
+    error: "错误信息",
+  };
+  return labels[key] || key;
+}
+
+function renderDetailPairs(details){
+  if(!details || typeof details !== "object" || !Object.keys(details).length){
+    return "-";
+  }
+  return `
+    <div class="detail-pairs">
+      ${Object.entries(details).map(([k, v]) => `
+        <span class="pair-chip">
+          <span class="k">${escapeHtml(detailKeyLabel(k))}</span>
+          <span>${escapeHtml(stringifyDetailValue(v))}</span>
+        </span>
+      `).join("")}
+    </div>
+  `;
+}
+
+function matchesIssueQuery(item, query){
+  if(!query) return true;
+  const q = query.toLowerCase();
+  const text = [
+    item.rule,
+    item.group_title,
+    item.message,
+    item.sheet,
+    item.row,
+    item.column,
+    item.entity_type,
+    item.entity_value,
+    JSON.stringify(item.details || {}),
+  ].map(v => (v ?? "").toString().toLowerCase()).join(" | ");
+  return text.includes(q);
+}
+
+function getFilteredIssues(){
+  if(!lastData || !Array.isArray(lastData.issues)) return [];
+  const query = searchInput.value.trim();
+  return lastData.issues.filter(item => {
+    const passLevel = currentFilter === "all" || item.level === currentFilter;
+    const passQuery = matchesIssueQuery(item, query);
+    return passLevel && passQuery;
+  });
+}
+
+function renderAggregateView(issues){
+  const groups = aggregateIssues(issues);
+
+  if(!groups.length){
+    return '<div class="empty">当前筛选条件下暂无结果</div>';
+  }
+
+  const html = `
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:120px;">规则</th>
+            <th style="width:110px;">级别</th>
+            <th>分组标题</th>
+            <th style="width:130px;">对象</th>
+            <th style="width:90px;">次数</th>
+            <th style="width:180px;">Sheet</th>
+            <th style="width:140px;">行号范围</th>
+            <th style="width:90px;">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${groups.map(group => {
+            const isOpen = expandedGroups.has(group.key);
+            const rowRanges = formatRowRanges(group.rows);
+            const detailItems = group.items.slice(0, 30);
+
+            return `
+              <tr>
+                <td>${escapeHtml(group.rule)}</td>
+                <td>${levelTag(group.level)}</td>
+                <td>${escapeHtml(group.title)}</td>
+                <td>${escapeHtml(group.entityValue || "-")}</td>
+                <td>${group.count}</td>
+                <td>${escapeHtml(group.sheets.join(", ") || "-")}</td>
+                <td>${escapeHtml(rowRanges)}</td>
+                <td>
+                  <button class="agg-btn" data-group-key="${escapeHtml(group.key)}">
+                    ${isOpen ? "收起" : "展开"}
+                  </button>
+                </td>
+              </tr>
+              ${isOpen ? `
+                <tr class="agg-subrow">
+                  <td colspan="8">
+                    <div class="agg-details">
+                      <p class="agg-details-note">
+                        当前分组共 ${group.count} 条明细，默认显示前 ${detailItems.length} 条。
+                      </p>
+                      <div class="table-box">
+                        <table class="mini-table">
+                          <thead>
+                            <tr>
+                              <th style="width:90px;">规则</th>
+                              <th style="width:90px;">级别</th>
+                              <th style="width:100px;">Sheet</th>
+                              <th style="width:80px;">行号</th>
+                              <th style="width:110px;">列名</th>
+                              <th>问题描述</th>
+                              <th style="width:360px;">详细对比</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            ${detailItems.map(item => `
+                              <tr>
+                                <td>${escapeHtml(item.rule || "-")}</td>
+                                <td>${levelTag(item.level)}</td>
+                                <td>${escapeHtml(item.sheet || "-")}</td>
+                                <td>${escapeHtml(item.row ?? "-")}</td>
+                                <td>${escapeHtml(item.column || "-")}</td>
+                                <td>${escapeHtml(item.message || "-")}</td>
+                                <td>${renderDetailPairs(item.details)}</td>
+                              </tr>
+                            `).join("")}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              ` : ""}
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  return html;
+}
+
+function renderDetailView(issues){
+  if(!issues.length){
+    return '<div class="empty">当前筛选条件下暂无结果</div>';
+  }
+
+  const rows = [...issues].sort((a, b) => {
+    const lv = getSeverityRank(b.level) - getSeverityRank(a.level);
+    if(lv !== 0) return lv;
+    const sa = (a.sheet || "").localeCompare(b.sheet || "", "zh-CN");
+    if(sa !== 0) return sa;
+    return Number(a.row || 0) - Number(b.row || 0);
+  });
+
+  return `
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:120px;">规则</th>
+            <th style="width:110px;">级别</th>
+            <th style="width:130px;">Sheet</th>
+            <th style="width:90px;">行号</th>
+            <th style="width:120px;">列名</th>
+            <th>问题描述</th>
+            <th style="width:360px;">详细对比</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(item => `
+            <tr>
+              <td>${escapeHtml(item.rule || "-")}</td>
+              <td>${levelTag(item.level)}</td>
+              <td>${escapeHtml(item.sheet || "-")}</td>
+              <td>${escapeHtml(item.row ?? "-")}</td>
+              <td>${escapeHtml(item.column || "-")}</td>
+              <td>${escapeHtml(item.message || "-")}</td>
+              <td>${renderDetailPairs(item.details)}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function bindAggregateToggles(){
+  document.querySelectorAll("[data-group-key]").forEach(btn => {
+    btn.onclick = () => {
+      const key = btn.getAttribute("data-group-key");
+      if(expandedGroups.has(key)){
+        expandedGroups.delete(key);
+      } else {
+        expandedGroups.add(key);
+      }
+      renderResults();
+    };
+  });
+}
+
+function renderResults(){
+  const issues = getFilteredIssues();
+
+  if(!lastData || !Array.isArray(lastData.issues) || !lastData.issues.length){
+    resultsWrap.innerHTML = '<div class="empty">当前暂无检查结果</div>';
+    return;
+  }
+
+  if(currentView === "aggregate"){
+    resultsWrap.innerHTML = renderAggregateView(issues);
+    bindAggregateToggles();
+  } else {
+    resultsWrap.innerHTML = renderDetailView(issues);
+  }
 }
 
 runBtn.onclick = async () => {
@@ -840,12 +1291,13 @@ runBtn.onclick = async () => {
     if(!resp.ok) throw new Error(data.detail || "请求失败");
 
     lastData = data;
+    expandedGroups.clear();
     setSummary(data.summary || {});
-    renderTable();
+    renderResults();
 
     if(data.issues && data.issues.length){
       setStatusText(data.ok ? "检查完成（无 error）" : "检查完成（存在 error）");
-      showToast("已按所勾选规则执行检查。");
+      showToast("已按所勾选规则执行检查。结果默认按问题聚合显示，可切换到原始明细。");
     }else{
       setStatusText("检查完成");
       showToast("已执行所选规则，但当前未发现问题，或检查逻辑尚未接入。");
