@@ -15,7 +15,7 @@ TARGET_SHEETS = ["RSW", "SPR", "FDS"]
 MATERIAL_DEPOT_PATH = Path("data/material_depot.xlsx")
 MATERIAL_DEPOT_SHEET = "material_depot"
 RULE_NAME_MAP = {
-    "input": "数据输入检查",
+    "input": "数据成熟度检查",
     "P1": "BOM重复零件冲突检查",
     "rule1": "连接点号规范性检查",
     "rule2": "材料牌号规范性检查",
@@ -225,11 +225,35 @@ def _collect_required_headers(ws, header_row: int, required_headers: List[str], 
     return issues
 
 
-def _iter_sheet_rows(ws, header_row: int) -> List[int]:
+def _iter_sheet_rows(ws, header_row: int, used_columns: set[int] | None = None) -> List[int]:
     rows: List[int] = []
-    for row_idx in range(header_row + 1, ws.max_row + 1):
-        row_values = [ws.cell(row=row_idx, column=c).value for c in range(1, ws.max_column + 1)]
-        if any(_normalize_text(v) for v in row_values):
+    if used_columns:
+        min_col = min(used_columns)
+        max_col = max(used_columns)
+    else:
+        min_col = 1
+        max_col = ws.max_column
+
+    for row_idx, row_values in enumerate(
+        ws.iter_rows(
+            min_row=header_row + 1,
+            max_row=ws.max_row,
+            min_col=min_col,
+            max_col=max_col,
+            values_only=True,
+        ),
+        start=header_row + 1,
+    ):
+        if used_columns:
+            relevant = [
+                row_values[col - min_col]
+                for col in used_columns
+                if 0 <= (col - min_col) < len(row_values)
+            ]
+        else:
+            relevant = row_values
+
+        if any(_normalize_text(v) for v in relevant):
             rows.append(row_idx)
     return rows
 
@@ -465,19 +489,48 @@ def _read_target_sheet_records(ws) -> tuple[List[dict[str, Any]], List[Issue]]:
         return [], missing
 
     header_map = _build_header_map(ws, header_row)
-    rows = _iter_sheet_rows(ws, header_row)
+    needed_columns = {
+        header_map[_normalize_key(name)]
+        for name in required_headers
+        if _normalize_key(name) in header_map
+    }
+    rows = _iter_sheet_rows(ws, header_row, needed_columns)
+
+    column_by_field = {
+        "connect_id": header_map[_normalize_key("Connect ID")],
+        "fixing_part_id": header_map[_normalize_key("Fixing part ID")],
+        "fixing_part_rev": header_map[_normalize_key("Fixing part Rev")],
+        "x": header_map[_normalize_key("X")],
+        "y": header_map[_normalize_key("Y")],
+        "z": header_map[_normalize_key("Z")],
+        "process_joint": header_map[_normalize_key("Process Joint")],
+        "extra_info": header_map[_normalize_key("Extra Info")],
+    }
+
+    part_columns: dict[int, dict[str, int]] = {}
+    for i in range(1, 5):
+        part_columns[i] = {
+            "part_no": header_map[_normalize_key(f"PART {i}")],
+            "rev": header_map[_normalize_key(f"PART {i} Rev")],
+            "material": header_map[_normalize_key(f"PART {i} Material")],
+            "gauge_raw": header_map[_normalize_key(f"PART {i} Gauge")],
+        }
 
     records: List[dict[str, Any]] = []
     for row_idx in rows:
+        row_map = {
+            col_idx: ws.cell(row=row_idx, column=col_idx).value for col_idx in needed_columns
+        }
+
         part_slots = []
         for i in range(1, 5):
-            gauge_raw = _normalize_text(_cell_value(ws, row_idx, header_map, f"PART {i} Gauge"))
+            gauge_raw = _normalize_text(row_map.get(part_columns[i]["gauge_raw"]))
             part_slots.append(
                 {
                     "slot": i,
-                    "part_no": _normalize_text(_cell_value(ws, row_idx, header_map, f"PART {i}")),
-                    "rev": _normalize_text(_cell_value(ws, row_idx, header_map, f"PART {i} Rev")),
-                    "material": _normalize_text(_cell_value(ws, row_idx, header_map, f"PART {i} Material")),
+                    "part_no": _normalize_text(row_map.get(part_columns[i]["part_no"])),
+                    "rev": _normalize_text(row_map.get(part_columns[i]["rev"])),
+                    "material": _normalize_text(row_map.get(part_columns[i]["material"])),
                     "gauge_raw": gauge_raw,
                     "gauge_num": _safe_float(gauge_raw),
                 }
@@ -487,14 +540,14 @@ def _read_target_sheet_records(ws) -> tuple[List[dict[str, Any]], List[Issue]]:
             {
                 "sheet": ws.title,
                 "row": row_idx,
-                "connect_id": _normalize_text(_cell_value(ws, row_idx, header_map, "Connect ID")),
-                "fixing_part_id": _normalize_text(_cell_value(ws, row_idx, header_map, "Fixing part ID")),
-                "fixing_part_rev": _normalize_text(_cell_value(ws, row_idx, header_map, "Fixing part Rev")),
-                "x": _safe_float(_cell_value(ws, row_idx, header_map, "X")),
-                "y": _safe_float(_cell_value(ws, row_idx, header_map, "Y")),
-                "z": _safe_float(_cell_value(ws, row_idx, header_map, "Z")),
-                "process_joint": _normalize_text(_cell_value(ws, row_idx, header_map, "Process Joint")),
-                "extra_info": _normalize_text(_cell_value(ws, row_idx, header_map, "Extra Info")),
+                "connect_id": _normalize_text(row_map.get(column_by_field["connect_id"])),
+                "fixing_part_id": _normalize_text(row_map.get(column_by_field["fixing_part_id"])),
+                "fixing_part_rev": _normalize_text(row_map.get(column_by_field["fixing_part_rev"])),
+                "x": _safe_float(row_map.get(column_by_field["x"])),
+                "y": _safe_float(row_map.get(column_by_field["y"])),
+                "z": _safe_float(row_map.get(column_by_field["z"])),
+                "process_joint": _normalize_text(row_map.get(column_by_field["process_joint"])),
+                "extra_info": _normalize_text(row_map.get(column_by_field["extra_info"])),
                 "parts": part_slots,
             }
         )
@@ -867,19 +920,7 @@ def _run_rule8_to_11(
     issues: List[Issue] = []
 
     if not ebom_uploaded:
-        issues.append(
-            _issue(
-                level="info",
-                message="未上传 EBOM，rule8-11 已跳过。",
-                sheet=None,
-                row=None,
-                column=None,
-                rule=_display_rule_name("rule8-11"),
-                group_key="rule8-11:no_ebom",
-                group_title="未上传 EBOM，rule8-11 已跳过",
-                entity_type="ebom",
-            )
-        )
+        # 未上传 EBOM 的提示已在 _data_maturity_check 中统一输出，避免重复信息。
         return issues
 
     if not ebom_ready:
@@ -1188,8 +1229,12 @@ def _data_maturity_check(
             )
         )
 
+    records_by_sheet: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for record in all_records:
+        records_by_sheet[record["sheet"]].append(record)
+
     for sheet_name in existing_sheets:
-        sheet_records = [r for r in all_records if r["sheet"] == sheet_name]
+        sheet_records = records_by_sheet.get(sheet_name, [])
         issues.extend(_run_rule1(sheet_records))
         issues.extend(_run_rule3(sheet_records))
         issues.extend(_run_rule4(sheet_records))
