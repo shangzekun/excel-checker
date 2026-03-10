@@ -1,6 +1,7 @@
 import io
 import logging
 import time
+import hashlib
 from datetime import datetime
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
@@ -32,6 +33,45 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+CHECK_CACHE_TTL_SECONDS = 300
+CHECK_CACHE_MAX_ITEMS = 12
+_CHECK_CACHE: dict[str, tuple[float, list]] = {}
+
+
+def _build_cache_key(
+    main_content: bytes,
+    selected_rule_ids: list[str],
+    ebom_content: bytes | None,
+) -> str:
+    h = hashlib.sha256()
+    h.update(main_content)
+    h.update("|".join(selected_rule_ids).encode("utf-8"))
+    h.update(ebom_content or b"")
+    return h.hexdigest()
+
+
+def _get_cached_issues(cache_key: str):
+    now = time.time()
+    expired = [k for k, (ts, _) in _CHECK_CACHE.items() if now - ts > CHECK_CACHE_TTL_SECONDS]
+    for key in expired:
+        _CHECK_CACHE.pop(key, None)
+
+    cached = _CHECK_CACHE.get(cache_key)
+    if not cached:
+        return None
+    ts, issues = cached
+    if now - ts > CHECK_CACHE_TTL_SECONDS:
+        _CHECK_CACHE.pop(cache_key, None)
+        return None
+    return issues
+
+
+def _set_cached_issues(cache_key: str, issues: list) -> None:
+    if len(_CHECK_CACHE) >= CHECK_CACHE_MAX_ITEMS:
+        oldest_key = min(_CHECK_CACHE.items(), key=lambda x: x[1][0])[0]
+        _CHECK_CACHE.pop(oldest_key, None)
+    _CHECK_CACHE[cache_key] = (time.time(), issues)
 
 
 def _parse_selected_rules(selected_rules: str) -> list[str]:
@@ -103,14 +143,21 @@ async def check_excel(
         ebom_file.filename if ebom_file else "",
     )
 
+    cache_key = _build_cache_key(main_content, selected_rule_ids, ebom_content)
+    cached_issues = _get_cached_issues(cache_key)
+
     try:
-        issues = run_checks(
-            main_content,
-            file.filename,
-            selected_rule_ids,
-            ebom_bytes=ebom_content,
-            ebom_filename=ebom_file.filename if ebom_file else None,
-        )
+        if cached_issues is not None:
+            issues = cached_issues
+        else:
+            issues = run_checks(
+                main_content,
+                file.filename,
+                selected_rule_ids,
+                ebom_bytes=ebom_content,
+                ebom_filename=ebom_file.filename if ebom_file else None,
+            )
+            _set_cached_issues(cache_key, issues)
     except Exception as exc:
         logger.exception("check failed filename=%s", file.filename)
         raise HTTPException(status_code=500, detail="Check execution failed") from exc
@@ -170,14 +217,21 @@ async def export_report(
         ebom_file.filename if ebom_file else "",
     )
 
+    cache_key = _build_cache_key(main_content, selected_rule_ids, ebom_content)
+    cached_issues = _get_cached_issues(cache_key)
+
     try:
-        issues = run_checks(
-            main_content,
-            file.filename,
-            selected_rule_ids,
-            ebom_bytes=ebom_content,
-            ebom_filename=ebom_file.filename if ebom_file else None,
-        )
+        if cached_issues is not None:
+            issues = cached_issues
+        else:
+            issues = run_checks(
+                main_content,
+                file.filename,
+                selected_rule_ids,
+                ebom_bytes=ebom_content,
+                ebom_filename=ebom_file.filename if ebom_file else None,
+            )
+            _set_cached_issues(cache_key, issues)
     except Exception as exc:
         logger.exception("report failed filename=%s", file.filename)
         raise HTTPException(status_code=500, detail="Report generation failed") from exc
