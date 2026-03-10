@@ -637,6 +637,39 @@
     }
     @keyframes spin{ to{ transform:rotate(360deg); } }
 
+    .task-progress{
+      margin-top:12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px 12px;
+      background:rgba(255,255,255,.03);
+      display:none;
+    }
+    .task-progress.show{ display:block; }
+    .task-progress .line{
+      margin-top:8px;
+      width:100%;
+      height:7px;
+      border-radius:999px;
+      background:rgba(255,255,255,.10);
+      overflow:hidden;
+    }
+    .task-progress .bar{
+      height:100%;
+      width:0%;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(59,130,246,.95), rgba(34,197,94,.90));
+      transition:width .22s linear;
+    }
+    .task-progress .meta{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      font-size:12px;
+      color:var(--muted);
+    }
+
     .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
 
     @media (max-width: 1100px){
@@ -735,6 +768,13 @@
           </div>
 
           <div class="toast" id="toast"></div>
+          <div class="task-progress" id="taskProgress">
+            <div class="meta">
+              <span id="taskProgressText">处理中…</span>
+              <span id="taskProgressPercent">0%</span>
+            </div>
+            <div class="line"><div class="bar" id="taskProgressBar"></div></div>
+          </div>
         </div>
       </div>
 
@@ -829,6 +869,10 @@ const dropFname = $("dropFname");
 const dropFmeta = $("dropFmeta");
 const dropFstatus = $("dropFstatus");
 const resultsWrap = $("resultsWrap");
+const taskProgress = $("taskProgress");
+const taskProgressBar = $("taskProgressBar");
+const taskProgressText = $("taskProgressText");
+const taskProgressPercent = $("taskProgressPercent");
 
 let tmpFile = null;
 let tmpEbomFile = null;
@@ -837,6 +881,8 @@ let currentFilter = "all";
 let currentRuleTabId = "";
 let currentView = "aggregate";
 const expandedGroups = new Set();
+let progressTimer = null;
+let progressValue = 0;
 
 function humanSize(bytes){
   if(bytes == null || Number.isNaN(Number(bytes))) return "-";
@@ -873,6 +919,40 @@ function setStatusText(text){
 }
 function setStatusLoading(text){
   status.innerHTML = `<span class="spinner"></span><span>${escapeHtml(text)}</span>`;
+}
+
+function startTaskProgress(text){
+  stopTaskProgress();
+  progressValue = 6;
+  taskProgressText.textContent = text || "处理中…";
+  taskProgressBar.style.width = `${progressValue}%`;
+  taskProgressPercent.textContent = `${progressValue}%`;
+  taskProgress.classList.add("show");
+
+  progressTimer = setInterval(() => {
+    const cap = 92;
+    if(progressValue >= cap) return;
+    const delta = progressValue < 45 ? 5 : (progressValue < 75 ? 3 : 1);
+    progressValue = Math.min(cap, progressValue + delta);
+    taskProgressBar.style.width = `${progressValue}%`;
+    taskProgressPercent.textContent = `${progressValue}%`;
+  }, 380);
+}
+
+function stopTaskProgress(doneText){
+  if(progressTimer){
+    clearInterval(progressTimer);
+    progressTimer = null;
+  }
+  if(doneText){
+    progressValue = 100;
+    taskProgressBar.style.width = "100%";
+    taskProgressPercent.textContent = "100%";
+    taskProgressText.textContent = doneText;
+    setTimeout(() => taskProgress.classList.remove("show"), 500);
+    return;
+  }
+  taskProgress.classList.remove("show");
 }
 
 function levelTag(level){
@@ -974,6 +1054,7 @@ function clearAll(){
   });
 
   resultsWrap.innerHTML = '<div class="empty">当前暂无检查结果</div>';
+  updateEbomVisibility();
 }
 
 function getSelectedRuleIds(){
@@ -1235,6 +1316,22 @@ function aggregateIssues(issues){
     });
 }
 
+function buildGroupTitle(group){
+  const first = group.items && group.items[0] ? group.items[0] : null;
+  const details = first && first.details ? first.details : {};
+
+  if(group.rule === "零件版本号：点表与BOM一致性检查" && details.point_version != null && details.bom_version != null){
+    return `${group.title}（点表=${details.point_version || "-"}，BOM=${details.bom_version || "-"}）`;
+  }
+  if(group.rule === "零件材料牌号：点表与BOM一致性检查" && details.point_material != null && details.bom_material != null){
+    return `${group.title}（点表=${details.point_material || "-"}，BOM=${details.bom_material || "-"}）`;
+  }
+  if(group.rule === "零件厚度：点表与BOM一致性检查" && details.point_gauge != null && details.bom_gauge != null){
+    return `${group.title}（点表=${details.point_gauge || "-"}，BOM=${details.bom_gauge || "-"}）`;
+  }
+  return group.title;
+}
+
 function stringifyDetailValue(value){
   if(Array.isArray(value)) return value.join(" / ");
   if(value == null || value === "") return "-";
@@ -1344,7 +1441,7 @@ function renderAggregateView(issues){
               <tr>
                 <td>${escapeHtml(group.rule)}</td>
                 <td>${levelTag(group.level)}</td>
-                <td>${escapeHtml(group.title)}</td>
+                <td>${escapeHtml(buildGroupTitle(group))}</td>
                 <td>${escapeHtml(group.entityValue || "-")}</td>
                 <td>${group.count}</td>
                 <td>${escapeHtml(group.sheets.join(", ") || "-")}</td>
@@ -1502,6 +1599,7 @@ runBtn.onclick = async () => {
 
   hideToast();
   setStatusLoading("上传并检查中…");
+  startTaskProgress("检查执行中，请稍候…");
   dropFstatus.textContent = "检查中";
   if(ebom) ebomFstatus.textContent = "EBOM 已参与检查";
 
@@ -1525,6 +1623,8 @@ runBtn.onclick = async () => {
       showToast("已执行所选规则，但当前未发现问题，或检查逻辑尚未接入。");
     }
 
+    stopTaskProgress("检查完成");
+
     dropFstatus.textContent = "已检查";
     if(data?.summary?.has_ebom && ebom){
       ebomFstatus.textContent = "EBOM 已使用";
@@ -1532,6 +1632,7 @@ runBtn.onclick = async () => {
   }catch(err){
     setStatusText("检查失败");
     showToast("检查失败：" + (err?.message || err));
+    stopTaskProgress();
     dropFstatus.textContent = "检查失败";
     if(ebom) ebomFstatus.textContent = "EBOM 检查失败";
   }finally{
@@ -1566,6 +1667,7 @@ exportBtn.onclick = async () => {
 
   hideToast();
   setStatusLoading("生成报告中…");
+  startTaskProgress("报告生成中，请稍候…");
 
   try{
     const fd = buildFormData(f, ebom, selectedRules);
@@ -1591,10 +1693,12 @@ exportBtn.onclick = async () => {
     URL.revokeObjectURL(url);
 
     setStatusText("报告已下载");
+    stopTaskProgress("报告已生成");
     if(ebom) ebomFstatus.textContent = "EBOM 已用于报告";
   }catch(err){
     setStatusText("导出失败");
     showToast("导出失败：" + (err?.message || err));
+    stopTaskProgress();
   }finally{
     exportBtn.disabled = false;
     runBtn.disabled = false;
