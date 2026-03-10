@@ -7,7 +7,7 @@ from typing import List, Dict, Any, Callable, Optional
 
 from openpyxl import load_workbook
 
-from .schemas import Issue
+from ..schemas import Issue
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ TARGET_SHEETS = ["RSW", "SPR", "FDS"]
 MATERIAL_DEPOT_PATH = Path("data/material_depot.xlsx")
 MATERIAL_DEPOT_SHEET = "material_depot"
 RULE_NAME_MAP = {
-    "input": "数据输入检查",
+    "input": "数据成熟度检查",
     "P1": "BOM重复零件冲突检查",
     "rule1": "连接点号规范性检查",
     "rule2": "材料牌号规范性检查",
@@ -36,70 +36,6 @@ ROOT_RULE_ID = "data_maturity_check"
 def _display_rule_name(rule_code: str) -> str:
     return RULE_NAME_MAP.get(rule_code, rule_code)
 
-def get_rules() -> List[Dict[str, Any]]:
-    return [
-        {
-            "id": "data_maturity_check",
-            "name": "数据成熟度检查",
-            "level": "warning",
-            "description": "",
-            "enabled": True,
-            "details": [
-                "连接点号规范性检查：连接点号为“xxx123456_7890”，其中，“xxx”为对应工艺的三位字母，123456代表Fixing Part的后六位数字，最后五位为“下划线”+四位数字。标准点号规范如：“RSW349075_0104”。",
-                "材料牌号规范性检查：建立了标准材料牌号规范库，对点表中的材料牌号进行一一比对，判断点表中材料牌号是否规范。",
-                "连接点号重复性检查：依次遍历点表中的连接点号，判断连接点号是否唯一。",
-                "连接点号位置重复性检查：按照空间位置10mm距离进行检查，两连接点的空间位置相距≤10mm报错。",
-                "钣金零件：同一零件版本号一致性检查：依次遍历点表中的零件及其版本号，判断同一零件在该点表中的版本号是否唯一。",
-                "钣金零件：同一零件材料牌号一致性检查：依次遍历点表中的零件及其材料牌号，判断同一零件在该点表中的材料牌号是否唯一。",
-                "钣金零件：同一零件材料厚度一致性检查：依次遍历点表中的零件及其厚度，判断同一零件在该点表中的厚度是否唯一。由于铸件的厚度不唯一，该检查项并没有对铸件的厚度进行检查。",
-                "Fixing-Part版本号与BOM中版本号一致性检查：将点表中Fixing-Part的版本号与选中的BOM清单中的版本号进行比对，判断两者是否相同。",
-                "零件版本号：点表与BOM一致性检查：将点表中每个零件的版本号与选中的BOM清单中的该零件版本号进行比对，判断两者是否相同。",
-                "零件材料牌号：点表与BOM一致性检查：将点表中每个零件的材料牌号与选中的BOM清单中的该零件材料牌号进行比对，判断两者是否相同。",
-                "零件厚度：点表与BOM一致性检查：将点表中每个零件的厚度与选中的BOM清单中的该零件厚度进行比对，判断两者是否相同。由于铸件的厚度不唯一，该检查项并没有对铸件的厚度进行检查。",
-                "工艺点属性的检查：如果该连接点属于单边点焊或四层搭接，判断该连接点是否被标注为工艺点。如果该连接点被标注为工艺点，判断该连接点是否属于单边点焊或四层搭接，如若不是给出提示，需人工确认该点是否为工艺点。",
-            ],
-        },
-        {
-            "id": "required_fields_demo",
-            "name": "必填字段检查（Demo）",
-            "level": "error",
-            "description": "模拟检查关键字段是否为空，返回若干 error 示例。",
-            "enabled": False,
-            "details": ["当前保留为示例规则，默认关闭。"],
-        },
-        {
-            "id": "date_format_demo",
-            "name": "日期格式检查（Demo）",
-            "level": "warning",
-            "description": "模拟检查日期格式是否标准，返回若干 warning 示例。",
-            "enabled": False,
-            "details": ["当前保留为示例规则，默认关闭。"],
-        },
-        {
-            "id": "enum_value_demo",
-            "name": "枚举值检查（Demo）",
-            "level": "info",
-            "description": "模拟检查枚举值是否在允许范围内，返回若干 info 示例。",
-            "enabled": False,
-            "details": ["当前保留为示例规则，默认关闭。"],
-        },
-        {
-            "id": "cross_sheet_demo",
-            "name": "跨表关联检查（Demo）",
-            "level": "error",
-            "description": "模拟主子表关联关系检查，例如主键缺失、引用不存在等。",
-            "enabled": False,
-            "details": ["当前保留为示例规则，默认关闭。"],
-        },
-        {
-            "id": "range_check_demo",
-            "name": "数值范围检查（Demo）",
-            "level": "warning",
-            "description": "模拟检查金额、数量、比例等是否落在合理区间。",
-            "enabled": False,
-            "details": ["当前保留为示例规则，默认关闭。"],
-        },
-    ]
 
 
 def _normalize_text(value: Any) -> str:
@@ -225,11 +161,35 @@ def _collect_required_headers(ws, header_row: int, required_headers: List[str], 
     return issues
 
 
-def _iter_sheet_rows(ws, header_row: int) -> List[int]:
+def _iter_sheet_rows(ws, header_row: int, used_columns: set[int] | None = None) -> List[int]:
     rows: List[int] = []
-    for row_idx in range(header_row + 1, ws.max_row + 1):
-        row_values = [ws.cell(row=row_idx, column=c).value for c in range(1, ws.max_column + 1)]
-        if any(_normalize_text(v) for v in row_values):
+    if used_columns:
+        min_col = min(used_columns)
+        max_col = max(used_columns)
+    else:
+        min_col = 1
+        max_col = ws.max_column
+
+    for row_idx, row_values in enumerate(
+        ws.iter_rows(
+            min_row=header_row + 1,
+            max_row=ws.max_row,
+            min_col=min_col,
+            max_col=max_col,
+            values_only=True,
+        ),
+        start=header_row + 1,
+    ):
+        if used_columns:
+            relevant = [
+                row_values[col - min_col]
+                for col in used_columns
+                if 0 <= (col - min_col) < len(row_values)
+            ]
+        else:
+            relevant = row_values
+
+        if any(_normalize_text(v) for v in relevant):
             rows.append(row_idx)
     return rows
 
@@ -465,19 +425,48 @@ def _read_target_sheet_records(ws) -> tuple[List[dict[str, Any]], List[Issue]]:
         return [], missing
 
     header_map = _build_header_map(ws, header_row)
-    rows = _iter_sheet_rows(ws, header_row)
+    needed_columns = {
+        header_map[_normalize_key(name)]
+        for name in required_headers
+        if _normalize_key(name) in header_map
+    }
+    rows = _iter_sheet_rows(ws, header_row, needed_columns)
+
+    column_by_field = {
+        "connect_id": header_map[_normalize_key("Connect ID")],
+        "fixing_part_id": header_map[_normalize_key("Fixing part ID")],
+        "fixing_part_rev": header_map[_normalize_key("Fixing part Rev")],
+        "x": header_map[_normalize_key("X")],
+        "y": header_map[_normalize_key("Y")],
+        "z": header_map[_normalize_key("Z")],
+        "process_joint": header_map[_normalize_key("Process Joint")],
+        "extra_info": header_map[_normalize_key("Extra Info")],
+    }
+
+    part_columns: dict[int, dict[str, int]] = {}
+    for i in range(1, 5):
+        part_columns[i] = {
+            "part_no": header_map[_normalize_key(f"PART {i}")],
+            "rev": header_map[_normalize_key(f"PART {i} Rev")],
+            "material": header_map[_normalize_key(f"PART {i} Material")],
+            "gauge_raw": header_map[_normalize_key(f"PART {i} Gauge")],
+        }
 
     records: List[dict[str, Any]] = []
     for row_idx in rows:
+        row_map = {
+            col_idx: ws.cell(row=row_idx, column=col_idx).value for col_idx in needed_columns
+        }
+
         part_slots = []
         for i in range(1, 5):
-            gauge_raw = _normalize_text(_cell_value(ws, row_idx, header_map, f"PART {i} Gauge"))
+            gauge_raw = _normalize_text(row_map.get(part_columns[i]["gauge_raw"]))
             part_slots.append(
                 {
                     "slot": i,
-                    "part_no": _normalize_text(_cell_value(ws, row_idx, header_map, f"PART {i}")),
-                    "rev": _normalize_text(_cell_value(ws, row_idx, header_map, f"PART {i} Rev")),
-                    "material": _normalize_text(_cell_value(ws, row_idx, header_map, f"PART {i} Material")),
+                    "part_no": _normalize_text(row_map.get(part_columns[i]["part_no"])),
+                    "rev": _normalize_text(row_map.get(part_columns[i]["rev"])),
+                    "material": _normalize_text(row_map.get(part_columns[i]["material"])),
                     "gauge_raw": gauge_raw,
                     "gauge_num": _safe_float(gauge_raw),
                 }
@@ -487,14 +476,14 @@ def _read_target_sheet_records(ws) -> tuple[List[dict[str, Any]], List[Issue]]:
             {
                 "sheet": ws.title,
                 "row": row_idx,
-                "connect_id": _normalize_text(_cell_value(ws, row_idx, header_map, "Connect ID")),
-                "fixing_part_id": _normalize_text(_cell_value(ws, row_idx, header_map, "Fixing part ID")),
-                "fixing_part_rev": _normalize_text(_cell_value(ws, row_idx, header_map, "Fixing part Rev")),
-                "x": _safe_float(_cell_value(ws, row_idx, header_map, "X")),
-                "y": _safe_float(_cell_value(ws, row_idx, header_map, "Y")),
-                "z": _safe_float(_cell_value(ws, row_idx, header_map, "Z")),
-                "process_joint": _normalize_text(_cell_value(ws, row_idx, header_map, "Process Joint")),
-                "extra_info": _normalize_text(_cell_value(ws, row_idx, header_map, "Extra Info")),
+                "connect_id": _normalize_text(row_map.get(column_by_field["connect_id"])),
+                "fixing_part_id": _normalize_text(row_map.get(column_by_field["fixing_part_id"])),
+                "fixing_part_rev": _normalize_text(row_map.get(column_by_field["fixing_part_rev"])),
+                "x": _safe_float(row_map.get(column_by_field["x"])),
+                "y": _safe_float(row_map.get(column_by_field["y"])),
+                "z": _safe_float(row_map.get(column_by_field["z"])),
+                "process_joint": _normalize_text(row_map.get(column_by_field["process_joint"])),
+                "extra_info": _normalize_text(row_map.get(column_by_field["extra_info"])),
                 "parts": part_slots,
             }
         )
@@ -867,19 +856,7 @@ def _run_rule8_to_11(
     issues: List[Issue] = []
 
     if not ebom_uploaded:
-        issues.append(
-            _issue(
-                level="info",
-                message="未上传 EBOM，rule8-11 已跳过。",
-                sheet=None,
-                row=None,
-                column=None,
-                rule=_display_rule_name("rule8-11"),
-                group_key="rule8-11:no_ebom",
-                group_title="未上传 EBOM，rule8-11 已跳过",
-                entity_type="ebom",
-            )
-        )
+        # 未上传 EBOM 的提示已在 _data_maturity_check 中统一输出，避免重复信息。
         return issues
 
     if not ebom_ready:
@@ -1112,7 +1089,7 @@ def _run_rule12(records: List[dict[str, Any]]) -> List[Issue]:
     return issues
 
 
-def _data_maturity_check(
+def run_data_maturity_check(
     file_bytes: bytes,
     filename: str,
     ebom_bytes: bytes | None = None,
@@ -1188,8 +1165,12 @@ def _data_maturity_check(
             )
         )
 
+    records_by_sheet: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for record in all_records:
+        records_by_sheet[record["sheet"]].append(record)
+
     for sheet_name in existing_sheets:
-        sheet_records = [r for r in all_records if r["sheet"] == sheet_name]
+        sheet_records = records_by_sheet.get(sheet_name, [])
         issues.extend(_run_rule1(sheet_records))
         issues.extend(_run_rule3(sheet_records))
         issues.extend(_run_rule4(sheet_records))
@@ -1221,181 +1202,5 @@ def _data_maturity_check(
     return issues
 
 
-def _required_fields_demo(
-    _: bytes,
-    filename: str,
-    ebom_bytes: bytes | None = None,
-    ebom_filename: str | None = None,
-) -> List[Issue]:
-    return [
-        Issue(
-            level="error",
-            message="客户名称不能为空",
-            sheet="客户清单",
-            row=3,
-            column="B",
-            rule="required_fields_demo",
-            group_key="required_fields_demo:customer_name_empty",
-            group_title="客户名称为空",
-        ),
-        Issue(
-            level="error",
-            message="订单编号不能为空",
-            sheet="订单明细",
-            row=8,
-            column="A",
-            rule="required_fields_demo",
-            group_key="required_fields_demo:order_no_empty",
-            group_title="订单编号为空",
-        ),
-    ]
 
-
-def _date_format_demo(
-    _: bytes,
-    filename: str,
-    ebom_bytes: bytes | None = None,
-    ebom_filename: str | None = None,
-) -> List[Issue]:
-    return [
-        Issue(
-            level="warning",
-            message="日期格式建议统一为 YYYY-MM-DD",
-            sheet="订单明细",
-            row=5,
-            column="D",
-            rule="date_format_demo",
-            group_key="date_format_demo:format",
-            group_title="日期格式建议统一",
-        ),
-        Issue(
-            level="warning",
-            message="检测到文本日期，建议转换为标准日期单元格",
-            sheet="发票记录",
-            row=12,
-            column="C",
-            rule="date_format_demo",
-            group_key="date_format_demo:text_date",
-            group_title="存在文本日期",
-        ),
-    ]
-
-
-def _enum_value_demo(
-    _: bytes,
-    filename: str,
-    ebom_bytes: bytes | None = None,
-    ebom_filename: str | None = None,
-) -> List[Issue]:
-    return [
-        Issue(
-            level="info",
-            message="状态值“已完成-手工”不在推荐枚举内，建议映射为“已完成”",
-            sheet="任务列表",
-            row=6,
-            column="F",
-            rule="enum_value_demo",
-            group_key="enum_value_demo:status",
-            group_title="存在非常规状态值",
-        )
-    ]
-
-
-def _cross_sheet_demo(
-    _: bytes,
-    filename: str,
-    ebom_bytes: bytes | None = None,
-    ebom_filename: str | None = None,
-) -> List[Issue]:
-    return [
-        Issue(
-            level="error",
-            message="子表中的客户ID在主表中不存在",
-            sheet="订单明细",
-            row=9,
-            column="B",
-            rule="cross_sheet_demo",
-            group_key="cross_sheet_demo:customer_id",
-            group_title="子表客户ID不存在",
-        )
-    ]
-
-
-def _range_check_demo(
-    _: bytes,
-    filename: str,
-    ebom_bytes: bytes | None = None,
-    ebom_filename: str | None = None,
-) -> List[Issue]:
-    return [
-        Issue(
-            level="warning",
-            message="折扣率超过 100%，请确认数据是否正确",
-            sheet="促销策略",
-            row=7,
-            column="E",
-            rule="range_check_demo",
-            group_key="range_check_demo:discount",
-            group_title="折扣率超过 100%",
-        )
-    ]
-
-
-RuleHandler = Callable[[bytes, str, bytes | None, str | None], List[Issue]]
-
-RULE_HANDLERS: Dict[str, RuleHandler] = {
-    "data_maturity_check": _data_maturity_check,
-    "required_fields_demo": _required_fields_demo,
-    "date_format_demo": _date_format_demo,
-    "enum_value_demo": _enum_value_demo,
-    "cross_sheet_demo": _cross_sheet_demo,
-    "range_check_demo": _range_check_demo,
-}
-
-
-def get_default_enabled_rule_ids() -> List[str]:
-    return [r["id"] for r in get_rules() if r.get("enabled")]
-
-
-def sanitize_selected_rule_ids(selected_rule_ids: List[str]) -> List[str]:
-    valid = set(RULE_HANDLERS.keys())
-    return [rule_id for rule_id in selected_rule_ids if rule_id in valid]
-
-
-def run_checks(
-    file_bytes: bytes,
-    filename: str,
-    selected_rule_ids: List[str] | None = None,
-    ebom_bytes: bytes | None = None,
-    ebom_filename: str | None = None,
-) -> List[Issue]:
-    if not selected_rule_ids:
-        selected_rule_ids = get_default_enabled_rule_ids()
-
-    selected_rule_ids = sanitize_selected_rule_ids(selected_rule_ids)
-
-    issues: List[Issue] = []
-
-    for rule_id in selected_rule_ids:
-        handler = RULE_HANDLERS.get(rule_id)
-        if not handler:
-            continue
-
-        try:
-            issues.extend(handler(file_bytes, filename, ebom_bytes, ebom_filename))
-        except Exception:
-            logger.exception("Rule execution failed: %s", rule_id)
-            issues.append(
-                Issue(
-                    level="error",
-                    message=f"规则执行异常：{rule_id}",
-                    sheet=None,
-                    row=None,
-                    column=None,
-                    rule=rule_id,
-                    group_key=f"{rule_id}:execution_failed",
-                    group_title=f"规则执行异常：{rule_id}",
-                )
-            )
-
-    return issues
+__all__ = ["run_data_maturity_check"]

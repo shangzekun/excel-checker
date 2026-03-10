@@ -23,14 +23,15 @@ def test_rules():
     resp = client.get("/api/rules")
     assert resp.status_code == 200
     assert "rules" in resp.json()
-    assert len(resp.json()["rules"]) >= 1
+    rule_ids = {item["id"] for item in resp.json()["rules"]}
+    assert rule_ids == {"data_maturity_check", "mr_check"}
 
 def test_check_valid_xlsx():
     data = make_xlsx_bytes()
     resp = client.post(
         "/api/check",
         files={"file": ("demo.xlsx", data, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
-        data={"selected_rules": "required_fields_demo,date_format_demo"},
+        data={"selected_rules": "data_maturity_check"},
     )
     assert resp.status_code == 200
     payload = resp.json()
@@ -41,7 +42,7 @@ def test_check_invalid_file_extension():
     resp = client.post(
         "/api/check",
         files={"file": ("demo.txt", b"abc", "text/plain")},
-        data={"selected_rules": "required_fields_demo"},
+        data={"selected_rules": "data_maturity_check"},
     )
     assert resp.status_code == 400
 
@@ -49,7 +50,7 @@ def test_check_invalid_xlsx_content():
     resp = client.post(
         "/api/check",
         files={"file": ("fake.xlsx", b"not real xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
-        data={"selected_rules": "required_fields_demo"},
+        data={"selected_rules": "data_maturity_check"},
     )
     assert resp.status_code == 400
 
@@ -58,7 +59,7 @@ def test_report_valid_xlsx():
     resp = client.post(
         "/api/report",
         files={"file": ("demo.xlsx", data, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
-        data={"selected_rules": "required_fields_demo"},
+        data={"selected_rules": "data_maturity_check"},
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"].startswith("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
