@@ -920,19 +920,7 @@ def _run_rule8_to_11(
     issues: List[Issue] = []
 
     if not ebom_uploaded:
-        issues.append(
-            _issue(
-                level="info",
-                message="未上传 EBOM，rule8-11 已跳过。",
-                sheet=None,
-                row=None,
-                column=None,
-                rule=_display_rule_name("rule8-11"),
-                group_key="rule8-11:no_ebom",
-                group_title="未上传 EBOM，rule8-11 已跳过",
-                entity_type="ebom",
-            )
-        )
+        # 未上传 EBOM 的提示已在 _data_maturity_check 中统一输出，避免重复信息。
         return issues
 
     if not ebom_ready:
