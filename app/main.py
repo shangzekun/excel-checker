@@ -87,24 +87,30 @@ async def check_excel(
     main_content = await file.read()
     ebom_content = await ebom_file.read() if ebom_file else None
 
-    # 校验主文件
     _validate_upload(file, main_content)
 
-    # 如果上传了 EBOM，则校验它
-    if ebom_content:
+    if ebom_content and ebom_file:
         _validate_upload(ebom_file, ebom_content)
 
     selected_rule_ids = _parse_selected_rules(selected_rules)
 
     logger.info(
-        "check start filename=%s size=%s rules=%s",
+        "check start filename=%s size=%s rules=%s has_ebom=%s ebom_filename=%s",
         file.filename,
         len(main_content),
         ",".join(selected_rule_ids),
+        ebom_content is not None,
+        ebom_file.filename if ebom_file else "",
     )
 
     try:
-        issues = run_checks(main_content, file.filename, selected_rule_ids)
+        issues = run_checks(
+            main_content,
+            file.filename,
+            selected_rule_ids,
+            ebom_bytes=ebom_content,
+            ebom_filename=ebom_file.filename if ebom_file else None,
+        )
     except Exception as exc:
         logger.exception("check failed filename=%s", file.filename)
         raise HTTPException(status_code=500, detail="Check execution failed") from exc
@@ -113,6 +119,8 @@ async def check_excel(
         "filename": file.filename,
         "size_bytes": len(main_content),
         "selected_rules": selected_rule_ids,
+        "has_ebom": ebom_content is not None,
+        "ebom_filename": ebom_file.filename if ebom_file else None,
         "errors": sum(1 for x in issues if x.level == "error"),
         "warnings": sum(1 for x in issues if x.level == "warning"),
         "infos": sum(1 for x in issues if x.level == "info"),
@@ -146,24 +154,30 @@ async def export_report(
     main_content = await file.read()
     ebom_content = await ebom_file.read() if ebom_file else None
 
-    # 校验主文件
     _validate_upload(file, main_content)
 
-    # 如果上传了 EBOM，则校验它
-    if ebom_content:
+    if ebom_content and ebom_file:
         _validate_upload(ebom_file, ebom_content)
 
     selected_rule_ids = _parse_selected_rules(selected_rules)
 
     logger.info(
-        "report start filename=%s size=%s rules=%s",
+        "report start filename=%s size=%s rules=%s has_ebom=%s ebom_filename=%s",
         file.filename,
         len(main_content),
         ",".join(selected_rule_ids),
+        ebom_content is not None,
+        ebom_file.filename if ebom_file else "",
     )
 
     try:
-        issues = run_checks(main_content, file.filename, selected_rule_ids)
+        issues = run_checks(
+            main_content,
+            file.filename,
+            selected_rule_ids,
+            ebom_bytes=ebom_content,
+            ebom_filename=ebom_file.filename if ebom_file else None,
+        )
     except Exception as exc:
         logger.exception("report failed filename=%s", file.filename)
         raise HTTPException(status_code=500, detail="Report generation failed") from exc
@@ -172,6 +186,8 @@ async def export_report(
         "filename": file.filename,
         "size_bytes": len(main_content),
         "selected_rules": ", ".join(selected_rule_ids),
+        "has_ebom": ebom_content is not None,
+        "ebom_filename": ebom_file.filename if ebom_file else None,
         "errors": sum(1 for x in issues if x.level == "error"),
         "warnings": sum(1 for x in issues if x.level == "warning"),
         "infos": sum(1 for x in issues if x.level == "info"),
