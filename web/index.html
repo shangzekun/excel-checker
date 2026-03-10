@@ -10,6 +10,9 @@
       --line: rgba(255,255,255,.11); --line2: rgba(255,255,255,.08);
       --text: rgba(255,255,255,.94); --muted: rgba(255,255,255,.60);
       --shadow: 0 20px 60px rgba(0,0,0,.34);
+      --blue: #60a5fa;
+      --blue-soft: rgba(96,165,250,.16);
+      --blue-line: rgba(96,165,250,.28);
     }
     *{ box-sizing:border-box; }
     body{
@@ -21,16 +24,33 @@
         radial-gradient(1000px 700px at 96% 12%, rgba(139,92,246,.18), transparent 55%),
         linear-gradient(90deg, #05122a 0%, #07152f 36%, #06142b 62%, #0b1b35 100%);
     }
-    .page{ max-width:1280px; margin:0 auto; padding:36px 20px 46px; }
-    .hero{ margin-bottom:18px; }
+    .page{ max-width:1280px; margin:0 auto; padding:28px 20px 40px; }
+    .hero{ margin-bottom:16px; }
     .hero h1{ margin:0; font-size:34px; line-height:1.15; font-weight:900; letter-spacing:.2px; }
-    .hero p{ margin:10px 0 0; color:var(--muted); font-size:14px; line-height:1.85; }
+    .hero p{ margin:8px 0 0; color:var(--muted); font-size:14px; line-height:1.8; }
 
     .top-grid{
       display:grid;
-      grid-template-columns: minmax(0, 1.25fr) minmax(340px, .75fr);
+      grid-template-columns: minmax(0, 1.25fr) minmax(360px, .75fr);
       gap:16px;
-      align-items:start;
+      align-items:stretch;
+    }
+    .top-grid > .card{
+      height: clamp(380px, 52vh, 500px);
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+    }
+    .top-grid > .card .card-bd{
+      flex:1;
+      min-height:0;
+    }
+
+    .upload-card .card-bd{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      min-height:0;
     }
 
     .card{
@@ -42,22 +62,43 @@
       overflow:hidden;
     }
     .card-hd{
-      padding:18px 20px;
+      padding:16px 18px;
       display:flex;
       justify-content:space-between;
       align-items:center;
       gap:14px;
       border-bottom:1px solid var(--line2);
       flex-wrap:wrap;
+      background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.015));
     }
     .card-title{ margin:0; font-size:15px; font-weight:900; letter-spacing:.2px; }
-    .card-bd{ padding:18px 20px 20px; }
+    .card-bd{ padding:16px 18px 18px; }
+    .upload-card .card-bd{
+      flex:1;
+      min-height:0;
+      overflow-y:auto;
+      overflow-x:hidden;
+      display:block;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(255,255,255,.25) transparent;
+    }
+    .upload-card .card-bd::-webkit-scrollbar{
+      width:6px;
+    }
 
+    .upload-card .card-bd::-webkit-scrollbar-thumb{
+      background:rgba(255,255,255,.25);
+      border-radius:999px;
+    }
+
+    .upload-card .card-bd::-webkit-scrollbar-track{
+      background:transparent;
+    }
     .upload-drop{
       border:1px dashed rgba(255,255,255,.18);
       background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.025));
       border-radius:18px;
-      padding:18px;
+      padding:16px;
       transition:.18s ease;
     }
     .upload-drop.drag{
@@ -94,9 +135,9 @@
     }
 
     .drop-file-info{
-      margin-top:14px; border:1px solid var(--line); border-radius:16px;
+      margin-top:12px; border:1px solid var(--line); border-radius:16px;
       background:rgba(255,255,255,.035);
-      padding:12px 14px;
+      padding:11px 13px;
       display:flex; justify-content:space-between; gap:12px; align-items:center;
     }
     .drop-file-info.hidden{ display:none; }
@@ -121,11 +162,11 @@
     }
 
     .ebom-box{
-      margin-top:14px;
+      margin-top:12px;
       border:1px dashed rgba(96,165,250,.28);
       background:linear-gradient(180deg, rgba(59,130,246,.08), rgba(255,255,255,.02));
       border-radius:16px;
-      padding:14px;
+      padding:13px;
       display:none;
     }
     .ebom-box.show{ display:block; }
@@ -133,9 +174,9 @@
       display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;
     }
     .ebom-title{ font-size:14px; font-weight:900; }
-    .ebom-sub{ margin-top:4px; font-size:12px; color:var(--muted); line-height:1.7; }
+    .ebom-sub{ margin-top:4px; font-size:12px; color:var(--muted); line-height:1.65; }
     .ebom-file-info{
-      margin-top:12px;
+      margin-top:10px;
       border:1px solid var(--line);
       border-radius:14px;
       background:rgba(255,255,255,.03);
@@ -156,25 +197,64 @@
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
 
-    .rule-select-box{ margin-top:18px; }
-    .rule-select-title{ margin:0 0 10px; font-size:13px; color:rgba(255,255,255,.88); font-weight:700; }
-    .rule-grid{ display:grid; gap:10px; }
+    .rule-select-box{
+      margin-top:14px;
+    }
+    .rule-select-title{
+      margin:0 0 10px;
+      font-size:12px;
+      color:rgba(255,255,255,.82);
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .rule-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+      gap:8px;
+    }
+
+    .rule-grid::-webkit-scrollbar{
+      width:6px;
+    }
+    .rule-grid::-webkit-scrollbar-thumb{
+      background:rgba(255,255,255,.22);
+      border-radius:999px;
+    }
+    .rule-grid::-webkit-scrollbar-track{
+      background:transparent;
+    }
     .rule-check{
-      display:flex; gap:12px; align-items:flex-start;
-      padding:12px 14px;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      min-height:40px;
+      padding:9px 11px;
       border:1px solid var(--line);
-      border-radius:16px;
-      background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.025));
+      border-radius:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.042), rgba(255,255,255,.022));
       cursor:pointer;
+      transition:.18s ease;
+    }
+    .rule-check:hover{
+      border-color:var(--blue-line);
+      background:linear-gradient(180deg, rgba(96,165,250,.10), rgba(255,255,255,.03));
+      transform:translateY(-1px);
     }
     .rule-check input{
-      margin-top:2px;
+      margin:0;
       accent-color:#60a5fa;
-      transform:scale(1.05);
+      transform:scale(1);
+      flex:0 0 auto;
     }
-    .rule-check .name{ margin:0; font-size:13px; font-weight:800; }
-    .rule-check .desc{ margin:6px 0 0; color:var(--muted); font-size:12px; line-height:1.75; }
+    .rule-check .name{
+      margin:0;
+      font-size:12px;
+      font-weight:800;
+      line-height:1.35;
+      color:rgba(255,255,255,.92);
+    }
     .rules-empty{ color:var(--muted); font-size:13px; line-height:1.75; }
+
     .tag{
       display:inline-flex; align-items:center; justify-content:center;
       padding:4px 9px; border-radius:999px; margin-left:8px;
@@ -189,53 +269,181 @@
     .tag.off{ background:rgba(148,163,184,.14); border-color:rgba(148,163,184,.26); color:#d8e0ea; }
 
     .file-status{
-      margin-top:14px;
+      margin-top:12px;
       color:var(--muted);
       font-size:12.5px;
       line-height:1.7;
     }
-    .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+    .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
 
     .collapse-btn{
       appearance:none; border:1px solid var(--line);
       background:rgba(255,255,255,.04); color:var(--text);
       border-radius:12px; padding:8px 12px; cursor:pointer; font-size:12px; font-weight:700;
     }
-    .rules-body{ display:block; }
-    .rules-body.collapsed{ display:none; }
-    .rule-tabs{
-      display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;
+
+    .rules-body{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      min-height:0;
+      height:100%;
     }
-    .rule-tab{
-      appearance:none; border:1px solid var(--line);
-      background:rgba(255,255,255,.03); color:var(--text);
-      border-radius:12px; padding:8px 12px; font-size:12px; cursor:pointer; font-weight:700;
+    .rules-body.collapsed{ display:none; }
+
+    .rule-tabs{
+      flex:0 0 auto;
+      display:flex;
+      gap:8px;
+      flex-wrap:nowrap;         /* 不换行 */
+      overflow-x:auto;          /* 横向滚动 */
+      overflow-y:hidden;
+      margin:0;
+      padding-bottom:4px;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(255,255,255,.22) transparent;
     }
     .rule-tab.active{
-      background:rgba(59,130,246,.16);
-      border-color:rgba(96,165,250,.28);
-      color:#d7ebff;
+      background:linear-gradient(180deg, rgba(59,130,246,.30), rgba(59,130,246,.16));
+      border-color:rgba(96,165,250,.55);
+      color:#ffffff;
+      box-shadow:
+        0 0 0 1px rgba(96,165,250,.18) inset,
+        0 8px 20px rgba(59,130,246,.18);
     }
-    .rules-panel{
-      border:1px solid var(--line);
-      border-radius:18px;
-      background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.025));
-      padding:14px;
+    .rule-tabs::-webkit-scrollbar{
+      height:6px;
     }
-    .rules-panel-head{
-      display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px;
+    .rule-tabs::-webkit-scrollbar-thumb{
+      background:rgba(255,255,255,.18);
+      border-radius:999px;
     }
-    .rules-panel-head h3{ margin:0; font-size:16px; font-weight:900; }
-    .rules-panel-head p{ margin:8px 0 0; color:var(--muted); font-size:12.5px; line-height:1.75; }
-    .rule-item{
-      border:1px solid var(--line);
-      border-radius:14px;
+
+    .rule-tab{
+      flex:0 0 auto;            /* 不被压缩 */
+      white-space:nowrap;       /* 单行显示 */
+      appearance:none;
+      border:1px solid rgba(255,255,255,.10);
       background:rgba(255,255,255,.028);
-      padding:12px 13px;
-      margin-top:10px;
+      color:rgba(255,255,255,.82);
+      border-radius:999px;
+      padding:6px 12px;
+      font-size:12px;
+      cursor:pointer;
+      font-weight:700;
+      transition:.18s ease;
     }
-    .rule-name{ margin:0; font-size:12px; font-weight:900; color:#dbeafe; }
-    .rule-desc{ margin:6px 0 0; color:var(--muted); font-size:12px; line-height:1.75; }
+
+    .rules-panel{
+      flex:1;
+      min-height:0;
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:
+        radial-gradient(600px 280px at 0% 0%, rgba(59,130,246,.10), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.025));
+      padding:16px;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(255,255,255,.28) transparent;
+    }
+    .rules-panel::-webkit-scrollbar{ width:8px; }
+    .rules-panel::-webkit-scrollbar-thumb{
+      background:rgba(255,255,255,.20);
+      border-radius:999px;
+    }
+    .rules-panel::-webkit-scrollbar-track{ background:transparent; }
+
+    .rules-panel-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:14px;
+      margin-bottom:14px;
+      padding-bottom:14px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .rules-panel-head h3{
+      margin:0;
+      font-size:20px;
+      line-height:1.25;
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+    .rules-panel-head p{
+      margin:10px 0 0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.8;
+      max-width:44ch;
+    }
+    .rule-badges{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      flex:0 0 auto;
+    }
+    .rule-hero{
+      display:grid;
+      grid-template-columns:minmax(0, 1fr);
+      gap:12px;
+    }
+    .rule-summary{
+      border:1px solid rgba(96,165,250,.18);
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(96,165,250,.10), rgba(255,255,255,.025));
+      padding:14px 15px;
+    }
+    .rule-summary-title{
+      margin:0 0 8px;
+      font-size:12px;
+      color:#bfdbfe;
+      font-weight:900;
+      letter-spacing:.4px;
+    }
+    .rule-summary-text{
+      margin:0;
+      font-size:13px;
+      line-height:1.8;
+      color:rgba(255,255,255,.90);
+    }
+    .rule-list{
+      display:grid;
+      gap:10px;
+      margin-top:2px;
+    }
+    .rule-item{
+      position:relative;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(255,255,255,.038), rgba(255,255,255,.022));
+      padding:13px 14px 13px 16px;
+      overflow:hidden;
+    }
+    .rule-item::before{
+      content:"";
+      position:absolute;
+      left:0;
+      top:12px;
+      bottom:12px;
+      width:3px;
+      border-radius:999px;
+      background:linear-gradient(180deg, rgba(96,165,250,.95), rgba(139,92,246,.80));
+    }
+    .rule-name{
+      margin:0;
+      font-size:12px;
+      font-weight:900;
+      color:#dbeafe;
+      letter-spacing:.2px;
+    }
+    .rule-desc{
+      margin:7px 0 0;
+      color:rgba(255,255,255,.78);
+      font-size:12.5px;
+      line-height:1.8;
+    }
 
     .stats{
       display:grid;
@@ -433,11 +641,22 @@
 
     @media (max-width: 1100px){
       .top-grid{ grid-template-columns:1fr; }
+      .top-grid > .card{ height:auto; }
+      .rules-panel{ max-height:420px; }
     }
     @media (max-width: 760px){
-      .page{ padding:24px 14px 36px; }
+      .page{ padding:22px 14px 34px; }
       .hero h1{ font-size:28px; }
       .stats{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+      .rule-grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+      .rules-panel-head{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .rule-badges{ justify-content:flex-start; }
+    }
+    @media (max-width: 520px){
+      .rule-grid{ grid-template-columns:1fr; }
     }
   </style>
 </head>
@@ -449,7 +668,7 @@
     </section>
 
     <section class="top-grid">
-      <div class="card">
+      <div class="card upload-card">
         <div class="card-hd"><h2 class="card-title">上传区（Upload Section）</h2></div>
         <div class="card-bd">
           <div class="upload-drop" id="drop">
@@ -500,8 +719,6 @@
               <div class="rules-empty">加载规则中…</div>
             </div>
           </div>
-
-          <div class="file-status" id="fileStatus">尚未选择文件</div>
 
           <div class="actions">
             <button class="btn primary" id="run" disabled>执行检查</button>
@@ -592,7 +809,6 @@ const ebomFstatus = $("ebomFstatus");
 const runBtn = $("run");
 const clearBtn = $("clear");
 const exportBtn = $("export");
-const fileStatus = $("fileStatus");
 const filebox = $("filebox");
 const fname = $("fname");
 const fsub = $("fsub");
@@ -680,7 +896,6 @@ function resetSummary(){
 
 function setFileInfo(f){
   tmpFile = f;
-  fileStatus.textContent = `已选择主文件：${f.name}（${humanSize(f.size)}）`;
   dropFileInfo.classList.remove("hidden");
   dropFname.textContent = f.name;
   dropFmeta.textContent = `${humanSize(f.size)} · .xlsx`;
@@ -730,7 +945,6 @@ function clearAll(){
   fileInput.value = "";
   ebomFileInput.value = "";
 
-  fileStatus.textContent = "尚未选择文件";
   dropFileInfo.classList.add("hidden");
   dropFname.textContent = "";
   dropFmeta.textContent = "";
@@ -769,22 +983,33 @@ function getSelectedRuleIds(){
 function buildRuleDetails(rule){
   const details = rule.details && rule.details.length ? rule.details : ["暂无详细说明。"];
   return `
-    <div class="rules-panel-head">
-      <div>
-        <h3>${escapeHtml(rule.name || rule.id)}</h3>
-        <p>${escapeHtml(rule.description || "")}</p>
+    <div class="rule-hero">
+      <div class="rules-panel-head">
+        <div>
+          <h3>${escapeHtml(rule.name || rule.id)}</h3>
+        </div>
+        <div class="rule-badges">
+          <span class="tag ${escapeHtml(rule.level || "info")}">${escapeHtml(rule.level || "info")}</span>
+          <span class="tag ${rule.enabled ? "on" : "off"}">${rule.enabled ? "默认启用" : "默认关闭"}</span>
+        </div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-        <span class="tag ${escapeHtml(rule.level || "info")}">${escapeHtml(rule.level || "info")}</span>
-        <span class="tag ${rule.enabled ? "on" : "off"}">${rule.enabled ? "默认启用" : "默认关闭"}</span>
+
+      <div class="rule-summary">
+        <p class="rule-summary-title">规则概览</p>
+        <p class="rule-summary-text">
+          该检查项会对上传点表的SPR/RSW/FDS页表单进行检查，并与EBOM进行比对（可选）。
+        </p>
+      </div>
+
+      <div class="rule-list">
+        ${details.map((d, idx) => `
+          <div class="rule-item">
+            <p class="rule-name">检查点 ${idx + 1}</p>
+            <p class="rule-desc">${escapeHtml(d)}</p>
+          </div>
+        `).join("")}
       </div>
     </div>
-    ${details.map((d, idx) => `
-      <div class="rule-item">
-        <p class="rule-name">规则说明 ${idx + 1}</p>
-        <p class="rule-desc">${escapeHtml(d)}</p>
-      </div>
-    `).join("")}
   `;
 }
 
@@ -797,10 +1022,7 @@ function renderRuleSelector(rules){
   ruleSelector.innerHTML = rules.map(r => `
     <label class="rule-check">
       <input class="rule-input" type="checkbox" value="${escapeHtml(r.id)}" ${r.enabled ? "checked" : ""}>
-      <div>
-        <p class="name">${escapeHtml(r.name)} <span class="tag ${escapeHtml(r.level)}">${escapeHtml(r.level)}</span></p>
-        <p class="desc">${escapeHtml(r.description)}</p>
-      </div>
+      <p class="name">${escapeHtml(r.name)}</p>
     </label>
   `).join("");
 
