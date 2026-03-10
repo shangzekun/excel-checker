@@ -1,622 +1,740 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Excel-checker 数据检查平台</title>
   <style>
-    :root{
-      --bg1:#071122; --bg2:#0d1b36; --card: rgba(255,255,255,.055); --card2: rgba(255,255,255,.035);
-      --line: rgba(255,255,255,.11); --line2: rgba(255,255,255,.08);
-      --text: rgba(255,255,255,.94); --muted: rgba(255,255,255,.60);
-      --shadow: 0 20px 60px rgba(0,0,0,.34);
-    }
-    *{ box-sizing:border-box; }
-    body{
-      margin:0; color:var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
-      min-height:100vh;
-      background:
-        radial-gradient(1100px 700px at 5% 8%, rgba(59,130,246,.18), transparent 60%),
-        radial-gradient(1000px 700px at 96% 12%, rgba(139,92,246,.18), transparent 55%),
-        linear-gradient(90deg, #05122a 0%, #07152f 36%, #06142b 62%, #0b1b35 100%);
-    }
-    .page{ max-width:1120px; margin:0 auto; padding:22px 18px 60px; }
-    .hero h1{ margin:0 0 8px; font-size:26px; font-weight:800; }
-    .hero p{ margin:0 0 18px; color:var(--muted); font-size:13px; line-height:1.7; }
-    .top-grid{ display:grid; grid-template-columns:1fr 2fr; gap:14px; }
-    @media (max-width:920px){ .top-grid{ grid-template-columns:1fr; } }
-    .card{
-      border:1px solid var(--line); border-radius:18px;
-      background: linear-gradient(180deg, var(--card), var(--card2));
-      box-shadow: var(--shadow); overflow:hidden; backdrop-filter: blur(12px);
-    }
-    .card-hd{ padding:16px 18px 12px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
-    .card-title{ margin:0; font-size:14px; font-weight:800; }
-    .card-bd{ padding:0 18px 18px; }
-    .btn{
-      appearance:none; border:1px solid rgba(255,255,255,.16); color:var(--text);
-      background:rgba(255,255,255,.06); border-radius:14px; font-size:13px; font-weight:700;
-      padding:10px 14px; cursor:pointer; transition:.18s ease;
-    }
-    .btn:hover{ transform:translateY(-1px); background:rgba(255,255,255,.10); }
-    .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
-    .btn.primary{ background:linear-gradient(135deg, rgba(59,130,246,.92), rgba(59,130,246,.72)); border-color:rgba(59,130,246,.48); }
-    .btn.success{ background:linear-gradient(135deg, rgba(34,197,94,.28), rgba(22,163,74,.22)); border-color:rgba(34,197,94,.28); color:#cbffd7; }
-
-    .upload-drop{
-      border:1px dashed rgba(255,255,255,.18);
-      border-radius:16px;
-      background:rgba(255,255,255,.025);
-      min-height:132px;
-      padding:18px 16px 16px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      transition:.18s ease;
-    }
-    .upload-drop.drag{ border-color:rgba(97,165,255,.55); background:rgba(255,255,255,.06); transform:translateY(-1px); }
-    .drop-top{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .drop-copy{ min-width:0; display:flex; flex-direction:column; gap:4px; }
-    .drop-title{ font-size:14px; font-weight:700; line-height:1.5; }
-    .drop-sub{ font-size:12px; color:var(--muted); line-height:1.6; }
-    .drop-file-info{
-      margin-top:auto;
-      border-top:1px solid rgba(255,255,255,.08);
-      padding-top:10px;
-      min-height:52px;
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:12px;
-      color:var(--muted);
-    }
-    .drop-file-info.hidden{ display:none; }
-    .drop-file-info .left{ min-width:0; }
-    .drop-file-info .name{
-      margin:0 0 4px;
-      font-size:12.5px;
-      font-weight:700;
-      color:var(--text);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .drop-file-info .meta{ margin:0; font-size:12px; line-height:1.5; color:var(--muted); }
-    .status-pill{
-      padding:4px 10px;
-      border-radius:999px;
-      background:rgba(59,130,246,.16);
-      border:1px solid rgba(59,130,246,.28);
-      color:#d5e6ff;
-      font-size:11px;
-      font-weight:800;
-      white-space:nowrap;
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --border: #d9e2f2;
+      --text: #1f2a37;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --info: #0891b2;
+      --success: #059669;
+      --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      --radius: 16px;
     }
 
-    .rule-select-box{ margin-top:14px; border:1px solid var(--line2); border-radius:14px; background:rgba(255,255,255,.035); padding:12px; }
-    .rule-select-title{ font-size:12px; color:var(--muted); margin:0 0 10px; }
-    .rule-grid{
-      display:grid; grid-template-columns:1fr; gap:8px; max-height:180px; overflow:auto; padding-right:2px;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(255,255,255,.14) transparent;
+    * {
+      box-sizing: border-box;
     }
-    .rule-grid::-webkit-scrollbar{ width:10px; }
-    .rule-grid::-webkit-scrollbar-track{ background:transparent; }
-    .rule-grid::-webkit-scrollbar-thumb{
-      background:rgba(255,255,255,.12);
-      border-radius:999px;
-      border:2px solid transparent;
-      background-clip:padding-box;
-    }
-    .rule-grid::-webkit-scrollbar-corner{ background:transparent; }
-    .rule-check{ display:flex; align-items:flex-start; gap:10px; border:1px solid rgba(255,255,255,.08); border-radius:12px; background:rgba(255,255,255,.025); padding:10px; }
-    .rule-check input{ margin-top:2px; accent-color:#60a5fa; }
-    .rule-check .name{ margin:0 0 6px; font-size:12.5px; font-weight:800; }
-    .rule-check .desc{ margin:0; color:var(--muted); font-size:11.5px; line-height:1.55; }
 
-    .actions{ display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
-    .file-status{ margin-top:14px; color:var(--muted); font-size:13px; min-height:22px; }
-    .status-line{
-      margin-top:14px; padding:12px 14px; border:1px solid var(--line2); border-radius:14px;
-      background:rgba(255,255,255,.035); display:none; justify-content:space-between; align-items:center; gap:12px;
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
     }
-    .status-line.show{ display:flex; }
-    .status-line .name{ margin:0 0 4px; font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .status-line .meta{ margin:0; font-size:12px; color:var(--muted); }
 
-    .collapse-btn{
-      border:1px solid rgba(255,255,255,.13); background:rgba(255,255,255,.07);
-      color:rgba(255,255,255,.88); border-radius:12px; padding:9px 12px; font-size:12px; font-weight:700; cursor:pointer;
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px;
     }
-    .rules-body.collapsed{ display:none; }
-    .rule-tabs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
-    .rule-tab{
-      appearance:none; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); color:rgba(255,255,255,.82);
-      border-radius:999px; padding:7px 12px; font-size:12px; font-weight:700; cursor:pointer; transition:.18s ease;
-    }
-    .rule-tab:hover{ background:rgba(255,255,255,.08); }
-    .rule-tab.active{ background:rgba(59,130,246,.18); border-color:rgba(59,130,246,.32); color:#d9e8ff; }
 
-    .rules-panel{
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:14px;
-      background:rgba(255,255,255,.02);
-      padding:12px 14px;
-      min-height:250px;
+    .header {
+      margin-bottom: 20px;
     }
-    .rules-panel-head{
-      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
-      padding-bottom:10px; margin-bottom:6px; border-bottom:1px solid rgba(255,255,255,.08);
-    }
-    .rules-panel-head h3{ margin:0 0 6px; font-size:13px; font-weight:800; }
-    .rules-panel-head p{ margin:0; color:var(--muted); font-size:12px; line-height:1.6; }
-    .rules-empty{ color:rgba(255,255,255,.82); font-size:13px; line-height:1.8; }
-    .rule-item{ padding:12px 0; border-bottom:1px solid rgba(255,255,255,.08); }
-    .rule-item:last-child{ border-bottom:0; }
-    .rule-name{ margin:0 0 8px; font-size:13px; font-weight:800; display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
-    .rule-desc{ margin:0; color:var(--muted); font-size:12px; line-height:1.7; }
 
-    .tag{
-      display:inline-flex; align-items:center; justify-content:center; border-radius:999px;
-      padding:2px 8px; font-size:11px; font-weight:800; border:1px solid rgba(255,255,255,.16);
-      background:rgba(255,255,255,.07); color:rgba(255,255,255,.9);
+    .header h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
     }
-    .tag.error{ background:rgba(239,68,68,.18); border-color:rgba(239,68,68,.28); color:#ffd0d0; }
-    .tag.warning{ background:rgba(245,158,11,.18); border-color:rgba(245,158,11,.28); color:#ffe1a9; }
-    .tag.info{ background:rgba(59,130,246,.18); border-color:rgba(59,130,246,.28); color:#cfe3ff; }
-    .tag.on{ background:rgba(34,197,94,.16); border-color:rgba(34,197,94,.28); color:#cbffd7; }
-    .tag.off{ background:rgba(148,163,184,.14); border-color:rgba(148,163,184,.26); color:#d8e0ea; }
 
-    .stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:14px; }
-    @media (max-width:920px){ .stats{ grid-template-columns:repeat(2,1fr); } }
-    @media (max-width:560px){ .stats{ grid-template-columns:1fr; } }
-    .stat{
-      border:1px solid var(--line); border-radius:16px; background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.03));
-      padding:16px 18px; box-shadow:var(--shadow);
+    .header p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
     }
-    .stat .label{ margin:0 0 10px; font-size:12px; color:var(--muted); }
-    .stat .num{ margin:0; font-size:21px; font-weight:900; }
-    .num.error{ color:#ff8b8b; } .num.warning{ color:#ffca3a; } .num.info{ color:#47c7ff; }
 
-    .table-card{ margin-top:14px; }
-    .table-head{ padding:16px 18px 8px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
-    .table-title{ margin:0; font-size:14px; font-weight:800; }
-    .level-filter{ display:flex; gap:14px; align-items:center; flex-wrap:wrap; color:rgba(255,255,255,.88); font-size:13px; }
-    .radio{ display:inline-flex; gap:6px; align-items:center; cursor:pointer; user-select:none; }
-    .radio input{ accent-color:#60a5fa; }
-    .table-tools{ padding:0 18px 10px; display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap; }
-    .search{
-      flex:1; min-width:220px; border:1px solid rgba(255,255,255,.13); background:rgba(255,255,255,.05); color:var(--text);
-      border-radius:14px; padding:10px 12px; font-size:13px; outline:none;
+    .layout {
+      display: grid;
+      grid-template-columns: 1.3fr 0.9fr;
+      gap: 20px;
     }
-    .search::placeholder{ color:rgba(255,255,255,.4); }
-    .table-wrap{ padding:0 18px 14px; }
-    .table-box{ border:1px solid rgba(255,255,255,.10); border-radius:14px; overflow:hidden; background:rgba(255,255,255,.02); }
-    table{ width:100%; border-collapse:collapse; }
-    th,td{ border-bottom:1px solid rgba(255,255,255,.08); padding:10px 12px; font-size:12.5px; text-align:left; vertical-align:top; }
-    th{ background:rgba(255,255,255,.025); color:rgba(255,255,255,.9); font-weight:800; }
-    tbody tr:hover td{ background:rgba(255,255,255,.03); }
-    .footer-tip{ padding:0 18px 16px; color:var(--muted); font-size:12px; line-height:1.8; }
-    .toast{
-      margin-top:12px; padding:10px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.05); color:rgba(255,255,255,.88); font-size:12.5px; line-height:1.65; display:none; white-space:pre-wrap;
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
     }
-    .toast.show{ display:block; }
-    .status-mini{ display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px; }
-    .spinner{
-      width:14px; height:14px; border:2px solid rgba(255,255,255,.25); border-top-color:rgba(255,255,255,.9);
-      border-radius:50%; animation:spin .8s linear infinite;
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 20px;
+      margin-bottom: 16px;
     }
-    @keyframes spin{ to{ transform:rotate(360deg); } }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+
+    .upload-box {
+      border: 2px dashed #bcd0f7;
+      border-radius: 14px;
+      padding: 20px;
+      background: #f8fbff;
+      display: grid;
+      gap: 12px;
+    }
+
+    .upload-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: #eef2ff;
+      color: #3730a3;
+    }
+
+    .btn-secondary:hover {
+      background: #e0e7ff;
+    }
+
+    .btn-ghost {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .btn-ghost:hover {
+      background: #e5e7eb;
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .file-name,
+    .status-line,
+    .hint,
+    .muted {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .rules-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .rule-item {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: #fcfdff;
+    }
+
+    .rule-top {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .rule-meta {
+      display: grid;
+      gap: 4px;
+      flex: 1;
+    }
+
+    .rule-name {
+      font-weight: 600;
+    }
+
+    .rule-desc {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .rule-badge {
+      display: inline-block;
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      color: white;
+      width: fit-content;
+    }
+
+    .badge-error {
+      background: var(--danger);
+    }
+
+    .badge-warning {
+      background: var(--warning);
+    }
+
+    .badge-info {
+      background: var(--info);
+    }
+
+    .ebom-box {
+      display: none;
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #c7d2fe;
+      background: #eef2ff;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .summary-item {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fafcff;
+    }
+
+    .summary-item .label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .summary-item .value {
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .filter-chip {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: white;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .filter-chip.active {
+      background: #dbeafe;
+      border-color: #93c5fd;
+      color: #1d4ed8;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      background: white;
+      border-radius: 12px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid #eef2f7;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #475569;
+    }
+
+    .level-tag {
+      display: inline-block;
+      min-width: 58px;
+      text-align: center;
+      color: white;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .level-error {
+      background: var(--danger);
+    }
+
+    .level-warning {
+      background: var(--warning);
+    }
+
+    .level-info {
+      background: var(--info);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .section-title-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .empty {
+      padding: 24px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      background: #fcfdff;
+    }
+
+    details {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #fcfdff;
+    }
+
+    details + details {
+      margin-top: 10px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    ul {
+      margin: 10px 0 0 20px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="page">
-    <section class="hero">
+  <div class="container">
+    <div class="header">
       <h1>Excel-checker 数据检查平台</h1>
-      <p>上传产品数据 Excel 文件，按规则执行检查，查看结果并导出报告。</p>
-    </section>
+      <p>上传产品数据 Excel 文件，按规则执行检查；勾选“数据成熟度检查”时，可选上传对应产品 EBOM 清单参与扩展校验。</p>
+    </div>
 
-    <section class="top-grid">
-      <div class="card">
-        <div class="card-hd"><h2 class="card-title">上传区（Upload Section）</h2></div>
-        <div class="card-bd">
-          <div class="upload-drop" id="drop">
-            <div class="drop-top">
-              <div class="drop-copy">
-                <div class="drop-title">拖拽 Excel 到这里</div>
-                <div class="drop-sub">或直接在右侧选择文件</div>
-              </div>
-              <div>
-                <input id="file" type="file" accept=".xlsx" hidden />
-                <button class="btn primary" id="pick">选择文件</button>
-              </div>
+    <div class="layout">
+      <div class="left">
+        <div class="card">
+          <h2>上传区</h2>
+
+          <div class="upload-box">
+            <div class="upload-row">
+              <label class="btn btn-secondary" for="main-file-input">选择主 Excel 文件</label>
+              <input id="main-file-input" type="file" accept=".xlsx" hidden />
+              <span id="main-file-name" class="file-name">尚未选择文件</span>
             </div>
-            <div class="drop-file-info hidden" id="dropFileInfo">
-              <div class="left">
-                <p class="name" id="dropFname"></p>
-                <p class="meta" id="dropFmeta"></p>
+
+            <div class="muted">支持 .xlsx 文件。主文件为必传。</div>
+
+            <div id="ebom-upload-section" class="ebom-box">
+              <div class="upload-row">
+                <label class="btn btn-secondary" for="ebom-file-input">选择对应产品 EBOM 清单</label>
+                <input id="ebom-file-input" type="file" accept=".xlsx" hidden />
+                <span id="ebom-file-name" class="file-name">未上传 EBOM 清单</span>
               </div>
-              <span class="status-pill" id="dropFstatus">文件已就绪</span>
+              <div class="hint">仅当勾选“数据成熟度检查”时显示。这个文件是可选的，不上传也可以执行检查。</div>
+            </div>
+
+            <div>
+              <div style="font-weight: 600; margin-bottom: 8px;">勾选本次执行的检查规则</div>
+              <div id="rules-list" class="rules-list">
+                <div class="muted">加载规则中…</div>
+              </div>
             </div>
           </div>
 
-          <div class="rule-select-box">
-            <p class="rule-select-title">勾选本次执行的检查规则</p>
-            <div class="rule-grid" id="ruleSelector">
-              <div class="rules-empty">加载规则中…</div>
-            </div>
-          </div>
-
-          <div class="file-status" id="fileStatus">尚未选择文件</div>
           <div class="actions">
-            <button class="btn primary" id="run" disabled>执行检查</button>
-            <button class="btn" id="clear" disabled>清除结果</button>
-            <button class="btn success" id="export" disabled>导出报告</button>
+            <button id="check-btn" class="btn btn-primary">执行检查</button>
+            <button id="clear-btn" class="btn btn-ghost">清除结果</button>
+            <button id="report-btn" class="btn btn-secondary">导出报告</button>
           </div>
-          <div class="status-line" id="filebox" style="display:none !important;">
-            <div style="min-width:0;">
-              <p class="name" id="fname"></p>
-              <p class="meta" id="fsub"></p>
+
+          <div id="status-line" class="status-line" style="margin-top: 14px;">等待上传</div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+          <div class="section-title-row">
+            <h2 style="margin: 0;">详细结果表格</h2>
+          </div>
+
+          <div class="filter-bar">
+            <button class="filter-chip active" data-filter="all">全部</button>
+            <button class="filter-chip" data-filter="error">Error</button>
+            <button class="filter-chip" data-filter="warning">Warning</button>
+            <button class="filter-chip" data-filter="info">Info</button>
+          </div>
+
+          <div id="results-container" class="empty">当前暂无检查结果</div>
+        </div>
+      </div>
+
+      <div class="right">
+        <div class="card">
+          <h2>规则说明区</h2>
+          <div id="rules-explanation">
+            <div class="muted">规则说明加载中…</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+          <h2>检查概览</h2>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <div class="label">总检查数</div>
+              <div class="value" id="total-count">0</div>
             </div>
-            <div class="status-mini" id="status"><span>等待上传</span></div>
+            <div class="summary-item">
+              <div class="label">错误数</div>
+              <div class="value" id="error-count">0</div>
+            </div>
+            <div class="summary-item">
+              <div class="label">警告数</div>
+              <div class="value" id="warning-count">0</div>
+            </div>
+            <div class="summary-item">
+              <div class="label">信息数</div>
+              <div class="value" id="info-count">0</div>
+            </div>
           </div>
-          <div class="toast" id="toast"></div>
+          <div id="run-summary" class="hint" style="margin-top: 14px;">尚未执行检查</div>
         </div>
-      </div>
-
-      <div class="card">
-        <div class="card-hd">
-          <h2 class="card-title">规则说明区（Rules Explanation）</h2>
-          <button class="collapse-btn" id="toggleRules">折叠</button>
-        </div>
-        <div class="card-bd rules-body" id="rulesBody">
-          <div class="rule-tabs" id="ruleTabs"></div>
-          <div class="rules-panel" id="rulesPanel">
-            <div class="rules-empty">规则说明加载中…</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="stats">
-      <div class="stat"><p class="label">总检查数</p><p class="num" id="s_total">0</p></div>
-      <div class="stat"><p class="label">错误数</p><p class="num error" id="s_err">0</p></div>
-      <div class="stat"><p class="label">警告数</p><p class="num warning" id="s_warn">0</p></div>
-      <div class="stat"><p class="label">信息数</p><p class="num info" id="s_info">0</p></div>
-    </section>
-
-    <section class="card table-card">
-      <div class="table-head">
-        <h2 class="table-title">详细结果表格（Results Table）</h2>
-        <div class="level-filter">
-          <label class="radio"><input type="radio" name="level" value="all" checked> 全部</label>
-          <label class="radio"><input type="radio" name="level" value="error"> Error</label>
-          <label class="radio"><input type="radio" name="level" value="warning"> Warning</label>
-          <label class="radio"><input type="radio" name="level" value="info"> Info</label>
-        </div>
-      </div>
-
-      <div class="table-tools">
-        <input class="search" id="q" placeholder="搜索：规则 / 级别 / Sheet / 行号 / 列名 / 问题描述" />
-      </div>
-
-      <div class="table-wrap">
-        <div class="table-box">
-          <table>
-            <thead>
-              <tr>
-                <th style="width:150px;">规则</th>
-                <th style="width:120px;">级别</th>
-                <th style="width:180px;">Sheet</th>
-                <th style="width:100px;">行号</th>
-                <th style="width:100px;">列名</th>
-                <th>问题描述</th>
-              </tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="footer-tip">
-        当前已支持“多规则勾选执行”。后续只需要在 <span class="mono">app/checks.py</span> 中替换 demo 规则函数，即可接入真实检查逻辑。
-      </div>
-    </section>
-  </div>
-
-<script>
-const $ = (id) => document.getElementById(id);
-const drop = $("drop");
-const fileInput = $("file");
-const pick = $("pick");
-const runBtn = $("run");
-const clearBtn = $("clear");
-const exportBtn = $("export");
-const fileStatus = $("fileStatus");
-const filebox = $("filebox");
-const fname = $("fname");
-const fsub = $("fsub");
-const status = $("status");
-const toast = $("toast");
-const sTotal = $("s_total");
-const sErr = $("s_err");
-const sWarn = $("s_warn");
-const sInfo = $("s_info");
-const tbody = $("tbody");
-const searchInput = $("q");
-const ruleSelector = $("ruleSelector");
-const toggleRules = $("toggleRules");
-const rulesBody = $("rulesBody");
-const ruleTabs = $("ruleTabs");
-const rulesPanel = $("rulesPanel");
-const dropFileInfo = $("dropFileInfo");
-const dropFname = $("dropFname");
-const dropFmeta = $("dropFmeta");
-const dropFstatus = $("dropFstatus");
-
-let tmpFile = null;
-let lastData = null;
-let currentFilter = "all";
-let currentRuleTabId = "";
-
-function fmtBytes(n){
-  if(n < 1024) return n + " B";
-  if(n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
-  return (n / 1024 / 1024).toFixed(1) + " MB";
-}
-function setStatusLoading(text){ status.innerHTML = '<span class="spinner"></span><span>' + text + '</span>'; }
-function setStatusText(text){ status.innerHTML = '<span>' + text + '</span>'; }
-function showToast(msg){ toast.textContent = msg; toast.classList.add("show"); }
-function hideToast(){ toast.textContent = ""; toast.classList.remove("show"); }
-function setSummary(summary){
-  sTotal.textContent = summary.total ?? 0;
-  sErr.textContent = summary.errors ?? 0;
-  sWarn.textContent = summary.warnings ?? 0;
-  sInfo.textContent = summary.infos ?? 0;
-}
-function levelTag(level){
-  if(level === "error") return '<span class="tag error">error</span>';
-  if(level === "warning") return '<span class="tag warning">warning</span>';
-  return '<span class="tag info">info</span>';
-}
-function setFileInfo(file){
-  tmpFile = file;
-  fileStatus.textContent = "已选择文件";
-  dropFname.textContent = file.name;
-  dropFmeta.textContent = fmtBytes(file.size) + " · Excel 文件";
-  dropFstatus.textContent = "文件已就绪";
-  dropFileInfo.classList.remove("hidden");
-  runBtn.disabled = false;
-  clearBtn.disabled = false;
-  exportBtn.disabled = false;
-  setStatusText("文件已就绪");
-  hideToast();
-}
-function clearAll(){
-  fileInput.value = "";
-  tmpFile = null;
-  lastData = null;
-  fileStatus.textContent = "尚未选择文件";
-  dropFname.textContent = "";
-  dropFmeta.textContent = "";
-  dropFstatus.textContent = "文件已就绪";
-  dropFileInfo.classList.add("hidden");
-  runBtn.disabled = true;
-  clearBtn.disabled = true;
-  exportBtn.disabled = true;
-  tbody.innerHTML = "";
-  setSummary({total:0, errors:0, warnings:0, infos:0});
-  setStatusText("等待上传");
-  hideToast();
-}
-function matchQuery(item, query){
-  if(!query) return true;
-  const text = [item.rule, item.level, item.sheet, item.row, item.column, item.message]
-    .map(v => (v ?? "").toString().toLowerCase()).join(" | ");
-  return text.includes(query.toLowerCase());
-}
-function passFilter(item){ return currentFilter === "all" || item.level === currentFilter; }
-function renderTable(){
-  tbody.innerHTML = "";
-  if(!lastData || !Array.isArray(lastData.issues)) return;
-  const query = searchInput.value.trim();
-  const rows = lastData.issues.filter(passFilter).filter(it => matchQuery(it, query));
-  for(const it of rows){
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${it.rule ?? ""}</td>
-      <td>${levelTag(it.level)}</td>
-      <td>${it.sheet ?? ""}</td>
-      <td>${it.row ?? ""}</td>
-      <td>${it.column ?? ""}</td>
-      <td>${it.message ?? ""}</td>
-    `;
-    tbody.appendChild(tr);
-  }
-}
-function getSelectedRuleIds(){
-  return Array.from(document.querySelectorAll('.rule-input:checked')).map(el => el.value);
-}
-function renderRuleSelector(rules){
-  if(!rules.length){
-    ruleSelector.innerHTML = '<div class="rules-empty">暂无可选规则</div>';
-    return;
-  }
-  ruleSelector.innerHTML = rules.map(r => `
-    <label class="rule-check">
-      <input class="rule-input" type="checkbox" value="${r.id}" ${r.enabled ? "checked" : ""}>
-      <div>
-        <p class="name">${r.name} <span class="tag ${r.level}">${r.level}</span></p>
-        <p class="desc">${r.description}</p>
-      </div>
-    </label>
-  `).join("");
-}
-function buildRuleDetails(rule){
-  const details = rule.details && rule.details.length ? rule.details : ["暂无详细说明。"];
-  return `
-    <div class="rules-panel-head">
-      <div>
-        <h3>${rule.name || rule.id}</h3>
-        <p>${rule.description || ""}</p>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-        <span class="tag ${rule.level || "info"}">${rule.level || "info"}</span>
-        <span class="tag ${rule.enabled ? "on" : "off"}">${rule.enabled ? "默认启用" : "默认关闭"}</span>
       </div>
     </div>
-    ${details.map((d, idx) => `
-      <div class="rule-item">
-        <p class="rule-name">规则说明 ${idx + 1}</p>
-        <p class="rule-desc">${d}</p>
-      </div>
-    `).join("")}
-  `;
-}
-function renderRuleTabs(rules){
-  if(!rules.length){
-    ruleTabs.innerHTML = "";
-    rulesPanel.innerHTML = '<div class="rules-empty">暂无规则说明</div>';
-    return;
-  }
-  if(!currentRuleTabId || !rules.find(r => r.id === currentRuleTabId)){
-    currentRuleTabId = rules[0].id;
-  }
-  ruleTabs.innerHTML = rules.map(r => `
-    <button class="rule-tab ${r.id === currentRuleTabId ? "active" : ""}" data-id="${r.id}">${r.name}</button>
-  `).join("");
-  const active = rules.find(r => r.id === currentRuleTabId) || rules[0];
-  rulesPanel.innerHTML = buildRuleDetails(active);
-  document.querySelectorAll(".rule-tab").forEach(btn => {
-    btn.onclick = () => {
-      currentRuleTabId = btn.dataset.id;
-      renderRuleTabs(rules);
+  </div>
+
+  <script>
+    const state = {
+      rules: [],
+      issues: [],
+      currentFilter: "all",
+      lastSummary: null,
     };
-  });
-}
-pick.onclick = () => fileInput.click();
-fileInput.onchange = () => {
-  const f = fileInput.files && fileInput.files[0];
-  if(!f) return;
-  if(!f.name.toLowerCase().endsWith(".xlsx")){ showToast("仅支持 .xlsx 文件。"); return; }
-  setFileInfo(f);
-};
-["dragenter","dragover"].forEach(evt => drop.addEventListener(evt, (e) => {
-  e.preventDefault(); e.stopPropagation(); drop.classList.add("drag");
-}));
-["dragleave","drop"].forEach(evt => drop.addEventListener(evt, (e) => {
-  e.preventDefault(); e.stopPropagation(); drop.classList.remove("drag");
-}));
-drop.addEventListener("drop", (e) => {
-  const f = e.dataTransfer.files && e.dataTransfer.files[0];
-  if(!f) return;
-  if(!f.name.toLowerCase().endsWith(".xlsx")){ showToast("仅支持 .xlsx 文件。"); return; }
-  setFileInfo(f);
-});
-clearBtn.onclick = clearAll;
-document.querySelectorAll('input[name="level"]').forEach(r => {
-  r.addEventListener("change", () => {
-    currentFilter = document.querySelector('input[name="level"]:checked').value;
-    renderTable();
-  });
-});
-searchInput.addEventListener("input", renderTable);
 
-runBtn.onclick = async () => {
-  const f = (fileInput.files && fileInput.files[0]) || tmpFile;
-  if(!f){ showToast("请先选择一个 .xlsx 文件。"); return; }
-  const selectedRules = getSelectedRuleIds();
-  if(!selectedRules.length){ showToast("请至少勾选一个检查规则。"); return; }
-  runBtn.disabled = true; exportBtn.disabled = true; pick.disabled = true; clearBtn.disabled = true;
-  hideToast(); setStatusLoading("上传并检查中…"); dropFstatus.textContent = "检查中";
-  try{
-    const fd = new FormData();
-    fd.append("file", f);
-    fd.append("selected_rules", selectedRules.join(","));
-    const resp = await fetch("/api/check", { method: "POST", body: fd });
-    const data = await resp.json();
-    if(!resp.ok) throw new Error(data.detail || "请求失败");
-    lastData = data;
-    setSummary(data.summary || {});
-    renderTable();
-    if(data.issues && data.issues.length){
-      setStatusText(data.ok ? "检查完成（无 error）" : "检查完成（存在 error）");
-      showToast("已按所勾选规则执行检查。");
-    }else{
-      setStatusText("检查完成");
-      showToast("已执行所选规则，但当前未发现问题，或检查逻辑尚未接入。");
+    const mainFileInput = document.getElementById("main-file-input");
+    const ebomFileInput = document.getElementById("ebom-file-input");
+    const mainFileName = document.getElementById("main-file-name");
+    const ebomFileName = document.getElementById("ebom-file-name");
+    const ebomUploadSection = document.getElementById("ebom-upload-section");
+    const rulesList = document.getElementById("rules-list");
+    const rulesExplanation = document.getElementById("rules-explanation");
+    const statusLine = document.getElementById("status-line");
+    const resultsContainer = document.getElementById("results-container");
+    const runSummary = document.getElementById("run-summary");
+
+    mainFileInput.addEventListener("change", () => {
+      const file = mainFileInput.files[0];
+      mainFileName.textContent = file ? file.name : "尚未选择文件";
+    });
+
+    ebomFileInput.addEventListener("change", () => {
+      const file = ebomFileInput.files[0];
+      ebomFileName.textContent = file ? file.name : "未上传 EBOM 清单";
+    });
+
+    document.getElementById("check-btn").addEventListener("click", onCheck);
+    document.getElementById("report-btn").addEventListener("click", onExportReport);
+    document.getElementById("clear-btn").addEventListener("click", clearResults);
+
+    document.querySelectorAll(".filter-chip").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".filter-chip").forEach((x) => x.classList.remove("active"));
+        btn.classList.add("active");
+        state.currentFilter = btn.dataset.filter;
+        renderResults();
+      });
+    });
+
+    async function loadRules() {
+      statusLine.textContent = "正在加载规则…";
+      try {
+        const resp = await fetch("/api/rules");
+        if (!resp.ok) {
+          throw new Error("规则加载失败");
+        }
+        const data = await resp.json();
+        state.rules = data.rules || [];
+        renderRules();
+        renderRuleDetails();
+        statusLine.textContent = "规则已加载，请选择文件并勾选规则。";
+      } catch (err) {
+        rulesList.innerHTML = `<div class="empty">规则加载失败：${escapeHtml(err.message)}</div>`;
+        rulesExplanation.innerHTML = `<div class="empty">无法加载规则说明</div>`;
+        statusLine.textContent = "规则加载失败";
+      }
     }
-    dropFstatus.textContent = "已检查";
-  }catch(err){
-    setStatusText("检查失败");
-    showToast("检查失败：" + (err?.message || err));
-    dropFstatus.textContent = "检查失败";
-  }finally{
-    runBtn.disabled = false; exportBtn.disabled = false; pick.disabled = false; clearBtn.disabled = false;
-  }
-};
 
-exportBtn.onclick = async () => {
-  const f = (fileInput.files && fileInput.files[0]) || tmpFile;
-  if(!f){ showToast("请先选择一个 .xlsx 文件。"); return; }
-  const selectedRules = getSelectedRuleIds();
-  if(!selectedRules.length){ showToast("请至少勾选一个检查规则。"); return; }
-  exportBtn.disabled = true; runBtn.disabled = true; pick.disabled = true; clearBtn.disabled = true;
-  hideToast(); setStatusLoading("生成报告中…");
-  try{
-    const fd = new FormData();
-    fd.append("file", f);
-    fd.append("selected_rules", selectedRules.join(","));
-    const resp = await fetch("/api/report", { method: "POST", body: fd });
-    if(!resp.ok){
-      let msg = "导出失败";
-      try{ const j = await resp.json(); msg = j.detail || msg; }catch(e){}
-      throw new Error(msg);
+    function renderRules() {
+      if (!state.rules.length) {
+        rulesList.innerHTML = `<div class="empty">暂无规则</div>`;
+        return;
+      }
+
+      rulesList.innerHTML = state.rules.map((rule) => {
+        const checked = rule.enabled ? "checked" : "";
+        return `
+          <label class="rule-item">
+            <div class="rule-top">
+              <input
+                type="checkbox"
+                name="rule"
+                value="${escapeHtml(rule.id)}"
+                ${checked}
+              />
+              <div class="rule-meta">
+                <div class="rule-name">${escapeHtml(rule.name)}</div>
+                <div class="rule-badge badge-${escapeHtml(rule.level)}">${escapeHtml(rule.level)}</div>
+                <div class="rule-desc">${escapeHtml(rule.description)}</div>
+              </div>
+            </div>
+          </label>
+        `;
+      }).join("");
+
+      document.querySelectorAll('input[name="rule"]').forEach((checkbox) => {
+        checkbox.addEventListener("change", toggleEbomUpload);
+      });
+
+      toggleEbomUpload();
     }
-    const blob = await resp.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = "check_report.xlsx";
-    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-    setStatusText("报告已下载");
-  }catch(err){
-    setStatusText("导出失败");
-    showToast("导出失败：" + (err?.message || err));
-  }finally{
-    exportBtn.disabled = false; runBtn.disabled = false; pick.disabled = false; clearBtn.disabled = false;
-  }
-};
 
-toggleRules.onclick = () => {
-  rulesBody.classList.toggle("collapsed");
-  toggleRules.textContent = rulesBody.classList.contains("collapsed") ? "展开" : "折叠";
-};
+    function renderRuleDetails() {
+      if (!state.rules.length) {
+        rulesExplanation.innerHTML = `<div class="empty">暂无规则说明</div>`;
+        return;
+      }
 
-async function loadRules(){
-  ruleSelector.innerHTML = '<div class="rules-empty">加载规则中…</div>';
-  rulesPanel.innerHTML = '<div class="rules-empty">规则说明加载中…</div>';
-  try{
-    const resp = await fetch("/api/rules");
-    const data = await resp.json();
-    const rules = data.rules || [];
-    renderRuleSelector(rules);
-    renderRuleTabs(rules);
-  }catch(e){
-    ruleSelector.innerHTML = '<div class="rules-empty">规则加载失败</div>';
-    rulesPanel.innerHTML = '<div class="rules-empty">规则加载失败，请确认后端 /api/rules 接口可用。</div>';
-  }
-}
-clearAll();
-loadRules();
-</script>
+      rulesExplanation.innerHTML = state.rules.map((rule) => `
+        <details ${rule.id === "data_maturity_check" ? "open" : ""}>
+          <summary>${escapeHtml(rule.name)}</summary>
+          <div class="hint" style="margin-top: 8px;">${escapeHtml(rule.description)}</div>
+          <ul>
+            ${(rule.details || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+          </ul>
+        </details>
+      `).join("");
+    }
+
+    function toggleEbomUpload() {
+      const selectedRuleIds = getSelectedRuleIds();
+      const needEbomSection = selectedRuleIds.includes("data_maturity_check");
+
+      ebomUploadSection.style.display = needEbomSection ? "block" : "none";
+
+      if (!needEbomSection) {
+        ebomFileInput.value = "";
+        ebomFileName.textContent = "未上传 EBOM 清单";
+      }
+    }
+
+    function getSelectedRuleIds() {
+      return Array.from(document.querySelectorAll('input[name="rule"]:checked')).map((el) => el.value);
+    }
+
+    function buildFormData() {
+      const mainFile = mainFileInput.files[0];
+      if (!mainFile) {
+        throw new Error("请先选择主 Excel 文件");
+      }
+
+      const selectedRules = getSelectedRuleIds();
+      if (!selectedRules.length) {
+        throw new Error("请至少勾选一条检查规则");
+      }
+
+      const formData = new FormData();
+      formData.append("file", mainFile);
+      formData.append("selected_rules", selectedRules.join(","));
+
+      const ebomFile = ebomFileInput.files[0];
+      if (ebomFile) {
+        formData.append("ebom_file", ebomFile);
+      }
+
+      return formData;
+    }
+
+    async function onCheck() {
+      try {
+        const formData = buildFormData();
+        statusLine.textContent = "正在执行检查…";
+
+        const resp = await fetch("/api/check", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await resp.json();
+        if (!resp.ok) {
+          throw new Error(data.detail || "检查失败");
+        }
+
+        state.issues = data.issues || [];
+        state.lastSummary = data.summary || null;
+        updateSummary(data.summary || {});
+        renderResults();
+
+        statusLine.textContent = `检查完成，共返回 ${state.issues.length} 条结果。`;
+      } catch (err) {
+        statusLine.textContent = `执行失败：${err.message}`;
+      }
+    }
+
+    async function onExportReport() {
+      try {
+        const formData = buildFormData();
+        statusLine.textContent = "正在生成报告…";
+
+        const resp = await fetch("/api/report", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!resp.ok) {
+          let detail = "导出报告失败";
+          try {
+            const data = await resp.json();
+            detail = data.detail || detail;
+          } catch (_) {}
+          throw new Error(detail);
+        }
+
+        const blob = await resp.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "check_report.xlsx";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+
+        statusLine.textContent = "报告已导出。";
+      } catch (err) {
+        statusLine.textContent = `导出失败：${err.message}`;
+      }
+    }
+
+    function updateSummary(summary) {
+      document.getElementById("total-count").textContent = summary.total ?? 0;
+      document.getElementById("error-count").textContent = summary.errors ?? 0;
+      document.getElementById("warning-count").textContent = summary.warnings ?? 0;
+      document.getElementById("info-count").textContent = summary.infos ?? 0;
+
+      const selectedRules = Array.isArray(summary.selected_rules)
+        ? summary.selected_rules.join(", ")
+        : (summary.selected_rules || "");
+
+      runSummary.textContent = [
+        `文件：${summary.filename || "-"}`,
+        `规则：${selectedRules || "-"}`,
+        `是否上传 EBOM：${summary.has_ebom ? "是" : "否"}`,
+        summary.ebom_filename ? `EBOM：${summary.ebom_filename}` : null,
+        summary.duration_ms != null ? `耗时：${summary.duration_ms}ms` : null,
+      ].filter(Boolean).join(" | ");
+    }
+
+    function renderResults() {
+      let rows = state.issues;
+
+      if (state.currentFilter !== "all") {
+        rows = rows.filter((item) => item.level === state.currentFilter);
+      }
+
+      if (!rows.length) {
+        resultsContainer.innerHTML = `<div class="empty">当前筛选条件下暂无结果</div>`;
+        return;
+      }
+
+      resultsContainer.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>规则</th>
+              <th>级别</th>
+              <th>Sheet</th>
+              <th>行号</th>
+              <th>列名</th>
+              <th>问题描述</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((item) => `
+              <tr>
+                <td>${escapeHtml(item.rule || "-")}</td>
+                <td><span class="level-tag level-${escapeHtml(item.level)}">${escapeHtml(item.level)}</span></td>
+                <td>${escapeHtml(item.sheet || "-")}</td>
+                <td>${item.row ?? "-"}</td>
+                <td>${escapeHtml(item.column || "-")}</td>
+                <td>${escapeHtml(item.message || "-")}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function clearResults() {
+      state.issues = [];
+      state.lastSummary = null;
+      document.getElementById("total-count").textContent = "0";
+      document.getElementById("error-count").textContent = "0";
+      document.getElementById("warning-count").textContent = "0";
+      document.getElementById("info-count").textContent = "0";
+      runSummary.textContent = "尚未执行检查";
+      resultsContainer.innerHTML = `<div class="empty">当前暂无检查结果</div>`;
+      statusLine.textContent = "结果已清除";
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    loadRules();
+  </script>
 </body>
 </html>
