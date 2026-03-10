@@ -7,6 +7,18 @@ logger = logging.getLogger(__name__)
 def get_rules() -> List[Dict[str, Any]]:
     return [
         {
+            "id": "data_maturity_check",
+            "name": "数据成熟度检查",
+            "level": "warning",
+            "description": "检查产品数据成熟度，可选结合对应产品 EBOM 清单进行校验。",
+            "enabled": True,
+            "details": [
+                "用于检查产品主数据是否满足成熟度要求。",
+                "如果上传了对应产品 EBOM 清单，可进一步执行关联校验。",
+                "如果未上传 EBOM，则仅执行主文件自身检查。"
+            ],
+        }
+        {
             "id": "required_fields_demo",
             "name": "必填字段检查（Demo）",
             "level": "error",
