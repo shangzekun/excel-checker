@@ -1,22 +1,25 @@
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
-from typing import List, Optional, Literal, Dict, Any
 
-Level = Literal["error", "warning", "info"]
-
-class RuleMeta(BaseModel):
-    id: str
-    name: str
-    level: Level
-    description: str
-    enabled: bool = True
 
 class Issue(BaseModel):
-    level: Level
+    level: str
     message: str
     sheet: Optional[str] = None
     row: Optional[int] = None
     column: Optional[str] = None
     rule: Optional[str] = None
+
+    # 用于前端聚合显示
+    group_key: Optional[str] = None
+    group_title: Optional[str] = None
+    entity_type: Optional[str] = None
+    entity_value: Optional[str] = None
+
+    # 用于前端展开时显示更多对比信息
+    details: Dict[str, Any] = Field(default_factory=dict)
+
 
 class CheckResult(BaseModel):
     ok: bool
